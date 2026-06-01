@@ -229,10 +229,10 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+        // Fixed the SDK versions to a known, stable release (10.12.2)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-        // Your specific Firebase web app configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
             authDomain: "tasks-de4d9.firebaseapp.com",
@@ -243,11 +243,9 @@
             appId: "1:908733856196:web:b8d268a692a0e079be4c91"
         };
 
-        // Initialize Firebase Backend
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Task Configuration Map
         const tasks = [
             // Spanish Daily
             {id: 'v1', title: 'Vocabulary', img: 'vocabulary.png', group: 'sd', boxes: 7, url: 'https://ilillill.github.io/flashcards/flashcards.html'},
@@ -278,7 +276,6 @@
             {id: 'rv1', title: 'Review Vocabulary', img: 'reviewvocabulary.png', group: 'm', boxes: 1, url: 'https://ilillill.github.io/flashcards/flashcards.html'}
         ];
 
-        // Render Dynamic UI Layout
         function renderTasks() {
             const container = document.getElementById('task-list');
             let currentGroup = '';
@@ -301,7 +298,12 @@
 
                 const titleWrap = document.createElement('div');
                 const link = document.createElement('a');
-                link.href = '#'; 
+                
+                // Added the URL logic here!
+                link.href = task.url ? task.url : '#'; 
+                if(task.url) {
+                    link.target = '_blank'; // Opens your resources in a new tab
+                }
                 link.className = 'task-link';
                 link.innerText = task.title;
                 titleWrap.appendChild(link);
@@ -328,7 +330,6 @@
             });
         }
 
-        // Calculate and Adjust Progress Metric Bar
         function updateProgress() {
             const dailyBoxes = document.querySelectorAll('.daily-box');
             let checked = 0;
@@ -342,27 +343,28 @@
             document.getElementById('progress-text').innerText = `${checked} / ${total} Daily Tasks Completed`;
         }
 
-        // Orchestrate App Context Lifecycle Setup
         renderTasks();
 
-        // Listen for Realtime DB sync updates 
         const dbRef = ref(db, 'trackerData');
+        
+        // Added error handling to tell you if the rules are locked!
         onValue(dbRef, (snapshot) => {
             const data = snapshot.val() || {};
             document.querySelectorAll('.check-box').forEach(box => {
                 box.checked = !!data[box.id]; 
             });
             updateProgress();
+        }, (error) => {
+            console.error(error);
+            alert("Firebase Error: Your database rules might be locked. Please make sure you set both .read and .write to true in the Firebase console!");
         });
 
-        // Push Local State Mutations to Firebase Nodes
         document.addEventListener('change', (e) => {
             if(e.target.classList.contains('check-box')) {
                 set(ref(db, 'trackerData/' + e.target.id), e.target.checked);
             }
         });
 
-        // Bind Modular Context Scoped Methods to Global Window Interface Object
         window.resetTracker = function() {
             if(confirm("Are you sure you want to clear the board and start a fresh week?")) {
                 remove(ref(db, 'trackerData')).then(() => {
