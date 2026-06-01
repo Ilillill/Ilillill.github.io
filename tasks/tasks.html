@@ -305,4 +305,223 @@
             // Monthly
             {id: 'arc1', title: 'Archery', img: 'archery.png', group: 'm', boxes: 1},
             {id: 'ep1', title: 'Everyday Picture', img: 'everydaypicture.png', group: 'm', boxes: 1},
-            {id: 'gram1', title: 'Grammapedia', img: 'grammapedia.png', group: 'm', boxes: 1, url: '
+            {id: 'gram1', title: 'Grammapedia', img: 'grammapedia.png', group: 'm', boxes: 1, url: 'https://docs.google.com/spreadsheets/d/17440vWaAHU3islpjMOR4JfU6SiIX7BSLv1p7IGSBlak/edit?gid=664520474#gid=664520474'},
+            {id: 'rm1', title: 'Review Maps', img: 'reviewmaps.png', group: 'm', boxes: 1, url: 'https://www.geoguessr.com/quiz/seterra'},
+            {id: 'rv1', title: 'Review Vocabulary', img: 'reviewvocabulary.png', group: 'm', boxes: 1, url: 'https://ilillill.github.io/flashcards/flashcards.html'}
+        ];
+
+        function renderTasks() {
+            const container = document.getElementById('task-list');
+            let currentGroup = '';
+
+            tasks.forEach(task => {
+                if(currentGroup && currentGroup !== task.group) {
+                    const spacer = document.createElement('div');
+                    spacer.className = 'spacer';
+                    container.appendChild(spacer);
+                }
+                currentGroup = task.group;
+
+                const row = document.createElement('div');
+                row.className = 'task-row';
+
+                const img = document.createElement('img');
+                img.src = task.img; 
+                img.className = 'task-icon';
+                img.alt = task.title;
+
+                const titleWrap = document.createElement('div');
+                
+                if (task.url) {
+                    const link = document.createElement('a');
+                    link.href = task.url;
+                    link.target = '_blank';
+                    link.className = 'task-link';
+                    link.innerText = task.title;
+                    titleWrap.appendChild(link);
+                } else {
+                    const plainText = document.createElement('span');
+                    plainText.className = 'task-text'; 
+                    plainText.style.fontWeight = '500';
+                    plainText.style.fontSize = '13px';
+                    plainText.style.color = 'var(--text)'; 
+                    plainText.innerText = task.title;
+                    titleWrap.appendChild(plainText);
+                }
+
+                row.appendChild(img);
+                row.appendChild(titleWrap);
+
+                // Add Checkboxes
+                for(let i=0; i<7; i++) {
+                    if(i < task.boxes) {
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.className = 'check-box';
+                        if(task.group === 'sd' || task.group === 'd') {
+                            cb.classList.add('daily-box');
+                        }
+                        cb.id = `task_${task.id}_box_${i}`;
+                        row.appendChild(cb);
+                    } else {
+                        const empty = document.createElement('div');
+                        row.appendChild(empty);
+                    }
+                }
+
+                // Add Empty Spacer Column
+                const bankSpacer = document.createElement('div');
+                row.appendChild(bankSpacer);
+
+                // Add Minus Button
+                const minusBtn = document.createElement('button');
+                minusBtn.className = 'bank-btn minus';
+                minusBtn.innerText = '−';
+                minusBtn.onclick = () => window.updateBank(task.id, -1);
+                row.appendChild(minusBtn);
+
+                // Add Bank Count Display
+                const countDisplay = document.createElement('div');
+                countDisplay.className = 'bank-count';
+                countDisplay.id = `bank_count_${task.id}`;
+                countDisplay.innerText = '0';
+                row.appendChild(countDisplay);
+
+                // Add Plus Button
+                const plusBtn = document.createElement('button');
+                plusBtn.className = 'bank-btn plus';
+                plusBtn.innerText = '+';
+                plusBtn.onclick = () => window.updateBank(task.id, 1);
+                row.appendChild(plusBtn);
+
+                container.appendChild(row);
+            });
+        }
+
+        function updateProgress() {
+            const dailyBoxes = document.querySelectorAll('.daily-box');
+            let checked = 0;
+            dailyBoxes.forEach(box => {
+                if(box.checked) checked++;
+            });
+            const total = dailyBoxes.length; 
+            const percentage = total === 0 ? 0 : (checked / total) * 100;
+            
+            document.getElementById('progress-fill').style.width = percentage + '%';
+            document.getElementById('progress-text').innerText = `${checked} / ${total} Daily Tasks Completed`;
+        }
+
+        renderTasks();
+
+        // Database Sync Logic
+        const dbRef = ref(db, 'trackerData');
+        
+        onValue(dbRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            
+            // Sync Checkmarks
+            document.querySelectorAll('.check-box').forEach(box => {
+                box.checked = !!data[box.id]; 
+            });
+
+            // Sync Bank Counts
+            tasks.forEach(task => {
+                const countEl = document.getElementById(`bank_count_${task.id}`);
+                if (countEl) {
+                    countEl.innerText = data[`bank_${task.id}`] || 0;
+                }
+            });
+
+            updateProgress();
+        }, (error) => {
+            console.error(error);
+            alert("Firebase Error: Your database rules might be locked.");
+        });
+
+        // Save checkmarks to Firebase
+        document.addEventListener('change', (e) => {
+            if(e.target.classList.contains('check-box')) {
+                set(ref(db, 'trackerData/' + e.target.id), e.target.checked);
+            }
+        });
+
+        // Handle Bank +/- clicks
+        window.updateBank = function(taskId, changeAmount) {
+            const countEl = document.getElementById(`bank_count_${taskId}`);
+            if (!countEl) return;
+            
+            let currentAmount = parseInt(countEl.innerText) || 0;
+            let newAmount = currentAmount + changeAmount;
+            
+            // Prevent the bank from going below zero
+            if (newAmount < 0) newAmount = 0; 
+            
+            // Update UI instantly
+            countEl.innerText = newAmount;
+            
+            // Push exact value to Firebase
+            set(ref(db, `trackerData/bank_${taskId}`), newAmount);
+        };
+
+        // NEW LOGIC: Reset week safely without deleting banked tasks!
+        window.resetTracker = function() {
+            if(confirm("Are you sure you want to clear the board and start a fresh week? (Your banked tasks will be saved!)")) {
+                const updates = {};
+                
+                // Only queue up the checkboxes to be deleted
+                document.querySelectorAll('.check-box').forEach(box => {
+                    box.checked = false;
+                    updates[box.id] = null; 
+                });
+                
+                // Perform the targeted deletion
+                update(ref(db, 'trackerData'), updates);
+                updateProgress();
+            }
+        }
+
+        window.exportTracker = function() {
+            const header = document.getElementById('export-header');
+            const actions = document.querySelector('.header-actions');
+            
+            const today = new Date();
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(today.setDate(diff));
+            
+            const yyyy = monday.getFullYear();
+            const mm = String(monday.getMonth() + 1).padStart(2, '0');
+            const dd = String(monday.getDate()).padStart(2, '0');
+            
+            header.innerText = `${yyyy}.${mm}.${dd}`;
+            header.style.display = 'block';
+            actions.style.display = 'none';
+            
+            // Temporarily hide buttons for the screenshot
+            const bankButtons = document.querySelectorAll('.bank-btn');
+            bankButtons.forEach(btn => btn.style.display = 'none');
+            
+            html2canvas(document.getElementById("tracker-container"), {
+                scale: 2, 
+                backgroundColor: "#FFFFFF",
+                useCORS: true 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `MysteryTracker_${yyyy}_${mm}_${dd}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // Restore UI elements after export
+                header.style.display = 'none';
+                actions.style.display = 'flex';
+                bankButtons.forEach(btn => btn.style.display = 'flex');
+            }).catch(err => {
+                alert("Image export failed. This is likely a local browser safety block. It will work perfectly when hosted on GitHub Pages!");
+                header.style.display = 'none';
+                actions.style.display = 'flex';
+                bankButtons.forEach(btn => btn.style.display = 'flex');
+            });
+        }
+    </script>
+</body>
+</html>
