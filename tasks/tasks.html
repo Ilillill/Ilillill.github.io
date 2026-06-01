@@ -23,7 +23,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 10px; /* Reduced outer padding */
+            padding: 10px;
             display: flex;
             justify-content: center;
         }
@@ -33,7 +33,7 @@
             max-width: 800px;
             background: var(--card-bg);
             border-radius: 12px;
-            padding: 15px 25px; /* Reduced container padding */
+            padding: 15px 25px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.08);
             position: relative;
         }
@@ -42,12 +42,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px; /* Tighter margin */
+            margin-bottom: 10px;
         }
 
         h1 {
             margin: 0;
-            font-size: 20px; /* Slightly smaller header */
+            font-size: 20px;
             color: var(--primary);
         }
 
@@ -72,7 +72,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 12px; /* Smaller button text */
+            font-size: 12px;
             transition: all 0.2s ease;
             font-family: 'Inter', sans-serif;
         }
@@ -101,14 +101,14 @@
 
         /* Progress Bar */
         .progress-wrapper {
-            margin-bottom: 12px; /* Tighter gap under progress bar */
+            margin-bottom: 12px;
         }
 
         .progress-container {
             width: 100%;
             background: #EDF2F7;
             border-radius: 10px;
-            height: 10px; /* Thinner progress bar */
+            height: 10px;
             overflow: hidden;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
@@ -131,11 +131,11 @@
         /* Task Layout */
         .task-row {
             display: grid;
-            grid-template-columns: 40px 160px repeat(7, 30px); /* Tighter grid columns */
-            gap: 8px; /* Less space between columns */
+            grid-template-columns: 40px 160px repeat(7, 30px);
+            gap: 8px;
             align-items: center;
-            margin-bottom: 2px; /* Super tight row margins */
-            padding: 2px 0; /* Super tight row padding */
+            margin-bottom: 2px;
+            padding: 2px 0;
             border-radius: 6px;
             transition: background 0.2s;
         }
@@ -145,7 +145,7 @@
         }
 
         .task-icon {
-            width: 32px; /* Smaller icons */
+            width: 32px;
             height: 32px;
             object-fit: cover;
             border-radius: 6px;
@@ -153,16 +153,16 @@
             background-color: white;
         }
 
-        .task-link, .task-text { /* Applied to both links and plain text */
+        .task-link, .task-text {
             color: var(--link);
             text-decoration: none;
             font-weight: 500;
-            font-size: 13px; /* Slightly smaller text */
+            font-size: 13px;
             display: block;
         }
 
         .task-text {
-            color: var(--text); /* Keep plain text dark */
+            color: var(--text);
         }
 
         .task-link:hover {
@@ -171,7 +171,7 @@
 
         /* Checkboxes */
         .check-box {
-            width: 24px; /* Smaller checkboxes */
+            width: 24px;
             height: 24px;
             appearance: none;
             -webkit-appearance: none;
@@ -200,12 +200,12 @@
         .check-box:checked::after {
             content: '✔';
             color: white;
-            font-size: 14px; /* Smaller checkmark */
+            font-size: 14px;
             font-weight: bold;
         }
 
         .spacer {
-            height: 8px; /* Tighter gaps between task groups */
+            height: 8px;
         }
     </style>
 </head>
@@ -233,7 +233,6 @@
     </div>
 
     <script type="module">
-        // Fixed the SDK versions to a known, stable release (10.12.2)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
@@ -280,7 +279,6 @@
             {id: 'rv1', title: 'Review Vocabulary', img: 'reviewvocabulary.png', group: 'm', boxes: 1, url: 'https://ilillill.github.io/flashcards/flashcards.html'}
         ];
 
-// Render Dynamic UI Layout
         function renderTasks() {
             const container = document.getElementById('task-list');
             let currentGroup = '';
@@ -303,26 +301,22 @@
 
                 const titleWrap = document.createElement('div');
                 
-                // --- NEW URL LOGIC ---
                 if (task.url) {
-                    // If a URL exists, make it a clickable link
                     const link = document.createElement('a');
                     link.href = task.url;
-                    link.target = '_blank'; // Opens in a new tab
+                    link.target = '_blank';
                     link.className = 'task-link';
                     link.innerText = task.title;
                     titleWrap.appendChild(link);
                 } else {
-                    // If NO URL exists, render it as plain, unclickable text
                     const plainText = document.createElement('span');
                     plainText.className = 'task-text'; 
                     plainText.style.fontWeight = '500';
-                    plainText.style.fontSize = '14px';
+                    plainText.style.fontSize = '13px';
                     plainText.style.color = 'var(--text)'; 
                     plainText.innerText = task.title;
                     titleWrap.appendChild(plainText);
                 }
-                // ---------------------
 
                 row.appendChild(img);
                 row.appendChild(titleWrap);
@@ -342,6 +336,9 @@
                         row.appendChild(empty);
                     }
                 }
+                container.appendChild(row);
+            }); // <-- THIS WAS THE MISSING BRACKET AND PARENTHESIS!
+        }
 
         function updateProgress() {
             const dailyBoxes = document.querySelectorAll('.daily-box');
@@ -360,7 +357,6 @@
 
         const dbRef = ref(db, 'trackerData');
         
-        // Added error handling to tell you if the rules are locked!
         onValue(dbRef, (snapshot) => {
             const data = snapshot.val() || {};
             document.querySelectorAll('.check-box').forEach(box => {
