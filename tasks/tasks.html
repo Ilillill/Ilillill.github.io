@@ -276,6 +276,7 @@
             {id: 'rv1', title: 'Review Vocabulary', img: 'reviewvocabulary.png', group: 'm', boxes: 1, url: 'https://ilillill.github.io/flashcards/flashcards.html'}
         ];
 
+// Render Dynamic UI Layout
         function renderTasks() {
             const container = document.getElementById('task-list');
             let currentGroup = '';
@@ -297,16 +298,27 @@
                 img.alt = task.title;
 
                 const titleWrap = document.createElement('div');
-                const link = document.createElement('a');
                 
-                // Added the URL logic here!
-                link.href = task.url ? task.url : '#'; 
-                if(task.url) {
-                    link.target = '_blank'; // Opens your resources in a new tab
+                // --- NEW URL LOGIC ---
+                if (task.url) {
+                    // If a URL exists, make it a clickable link
+                    const link = document.createElement('a');
+                    link.href = task.url;
+                    link.target = '_blank'; // Opens in a new tab
+                    link.className = 'task-link';
+                    link.innerText = task.title;
+                    titleWrap.appendChild(link);
+                } else {
+                    // If NO URL exists, render it as plain, unclickable text
+                    const plainText = document.createElement('span');
+                    plainText.className = 'task-text'; 
+                    plainText.style.fontWeight = '500';
+                    plainText.style.fontSize = '14px';
+                    plainText.style.color = 'var(--text)'; 
+                    plainText.innerText = task.title;
+                    titleWrap.appendChild(plainText);
                 }
-                link.className = 'task-link';
-                link.innerText = task.title;
-                titleWrap.appendChild(link);
+                // ---------------------
 
                 row.appendChild(img);
                 row.appendChild(titleWrap);
@@ -326,9 +338,6 @@
                         row.appendChild(empty);
                     }
                 }
-                container.appendChild(row);
-            });
-        }
 
         function updateProgress() {
             const dailyBoxes = document.querySelectorAll('.daily-box');
