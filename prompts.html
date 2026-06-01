@@ -63,6 +63,10 @@
             text-transform: uppercase;
             cursor: pointer;
         }
+        
+        /* Instant Heroine Button */
+        .btn-heroine { background-color: #ec4899; color: white; }
+        .btn-heroine:hover { background-color: #f472b6; }
 
         .search-bar {
             width: 100%;
@@ -195,6 +199,7 @@
             font-size: 0.8rem;
         }
 
+        
         .btn-add { background-color: #4b5563; color: white; }
         .btn-add:hover { background-color: #6b7280; }
         .btn-chaos { background-color: #ef4444; color: white; }
@@ -283,6 +288,7 @@
                 <button class="btn-add" onclick="addCustomText()">Add</button>
             </div>
             <div class="btn-group">
+                <button class="btn-heroine" id="btn-heroine-ui" onclick="generateAndCopyHeroine()">👸 Instant Heroine</button>
                 <button class="btn-chaos" onclick="triggerChaos()" title="Randomly select conflicting items">🌪️ Chaos</button>
                 <button class="btn-random" onclick="randomizePrompt()">🎲 Randomize</button>
                 <button class="btn-clear" onclick="clearPrompt()">Clear All</button>
@@ -794,7 +800,183 @@
         // Run setup
         fetchWord();
         initBuilder();
+// --- INSTANT HEROINE GENERATOR ---
+        const heroineData = {
+            base: "Ultra-high-resolution, beautiful, gorgeous, very cute young female, long hair, incredible amount of detail, no runes as decorations, background is low in detail and blurred out",
+            classes: [
+                "frostfire mage", "druid", "sorceress of light", "paladin", "futuristic space pilot", "elven archer", 
+                "archmage", "space marine", "superhero", "Elementalist", "Storm Mage", "Ice Sorceress", "Fire Witch", 
+                "Arcane Scholar", "Time Mage", "Shadow Sorceress", "Void Mage", "Crystal Mage", "Rune Weaver", "Blood Mage", 
+                "Dream Mage", "Celestial Mage", "Moon Priestess", "Sun Priestess", "Starcaller", "Spirit Channeler", 
+                "Enchantress", "Oracle", "Necromancer", "Illusionist", "Battle Mage", "Forest Guardian", "Nature Priestess", 
+                "Keeper of the Wilds", "Beast Whisperer", "Fairy Queen", "Dryad", "Spirit Walker", "Flower Mage", 
+                "Ocean Priestess", "Coral Queen", "Storm Druid", "Moon Druid", "Sacred Grove Guardian", "Animal Shapeshifter", 
+                "High Priestess", "Divine Champion", "Angelic Guardian", "Sacred Knight", "Lightbringer", "Temple Guardian", 
+                "Celestial Herald", "Oracle of the Gods", "Holy Healer", "Sun Empress", "Moon Queen", "Queen of Light", 
+                "Dragon Knight", "Valkyrie", "Monster Hunter", "Swordmaster", "Duelist", "Shield Maiden", "Royal Guard", 
+                "Mercenary Captain", "Ranger", "Beast Rider", "Pirate Captain", "Treasure Hunter", "Explorer", "Relic Seeker", 
+                "High Queen of the Elves", "Dragon Empress", "Sorceress Queen", "Queen of the Seas", "Queen of Shadows", 
+                "Star Empress", "Ruler of the Crystal Kingdom", "Fairy Monarch", "Celestial Empress", "Dragon Tamer", 
+                "Phoenix Guardian", "Mermaid Queen", "Siren", "Vampire Noble", "Werewolf Alpha", "Spirit Queen", "Ancient Immortal", 
+                "Demi-Goddess", "Goddess of the Moon", "Goddess of Nature", "Goddess of Magic", "Cosmic Entity", "Starship Captain", 
+                "Galactic Explorer", "Space Ranger", "Bounty Hunter", "Cybernetic Operative", "Android", "AI Avatar", "Mecha Pilot", 
+                "Interstellar Diplomat", "Quantum Scientist", "Time Traveler", "Planetary Surveyor", "Alien Princess", "Cosmic Defender", 
+                "Telepath", "Telekinetic", "Energy Manipulator", "Gravity Controller", "Time Controller", "Reality Bender", 
+                "Elemental Hero", "Speedster", "Shape Shifter", "Dimensional Guardian", "Guardian of Earth", "Star Guardian", 
+                "Crystal Empress", "Keeper of Dreams", "Mistress of Seasons", "Weaver of Fate", "Guardian of Time", "Keeper of Lost Knowledge", 
+                "Collector of Stars", "Mistress of the Aurora", "Walker Between Worlds", "Guardian of Ancient Portals", "Keeper of Forgotten Realms", 
+                "Navigator of the Cosmic Sea", "Frostfire Archmage", "Dragon-Riding Paladin", "Celestial Druid", "Shadow Valkyrie", 
+                "Starborn Sorceress", "Crystal Queen", "Arcane Space Pilot", "Time-Weaving Enchantress", "Moonlight Assassin", 
+                "Cosmic Priestess", "Phoenix Mage", "Dreamwalking Oracle", "Void Ranger", "Storm Empress", "Astral Dragon Tamer"
+            ],
+            styles: [
+                "Fantasy style", "Anime", "Photo realistic style", "World of Warcraft Style", "high fantasy style", 
+                "fairy tale style", "Photorealistic", "Cinematic", "Ultra-realistic", "Hyperrealistic", "Movie concept art", 
+                "Hollywood fantasy", "Epic cinematic fantasy", "Fantasy photography", "Naturalistic fantasy", "Fine art realism", 
+                "Dark fantasy", "Epic fantasy", "Mythological fantasy", "Enchanted fantasy", "Magical realism", "Sword and sorcery", 
+                "Arthurian fantasy", "Elven fantasy", "Celestial fantasy", "Dream fantasy", "Gothic fantasy", "Whimsical fantasy", 
+                "The Elder Scrolls style", "Guild Wars style", "Final Fantasy style", "Dragon Age style", "Diablo style", 
+                "League of Legends splash art style", "MMORPG concept art style", "RPG character art style", "Fantasy game cinematic style", 
+                "Action RPG style", "Hero character concept art", "Modern anime", "Fantasy anime", "Shōjo anime", "Isekai anime", 
+                "Dark fantasy anime", "Magical girl anime", "Anime movie style", "Manga illustration", "Chibi style", "JRPG art style", 
+                "Studio Ghibli-inspired style", "Japanese fantasy illustration", "Digital painting", "Fantasy illustration", 
+                "Book cover illustration", "Children's book illustration", "Storybook style", "Watercolor illustration", "Ink illustration", 
+                "Pencil illustration", "Oil painting", "Acrylic painting", "Pastel painting", "Mixed media illustration", "Storybook fantasy", 
+                "Dreamscape style", "Ethereal fantasy", "Enchanted forest style", "Magical princess style", "Soft fantasy illustration", 
+                "Romantic fantasy", "Wonderland-inspired style", "Fairy realm style", "Mythic dream style", "Grimdark", "Dark fairy tale", 
+                "Vampire gothic style", "Eldritch fantasy", "Haunted fantasy", "Victorian gothic", "Shadow fantasy", "Moonlit gothic fantasy", 
+                "Stylized fantasy", "Semi-realistic fantasy", "Painterly fantasy", "Concept art style", "Splash art style", "Character design sheet style", 
+                "Trading card art style", "Poster art style", "Fantasy mural style", "Matte painting style", "Space fantasy", "Cosmic fantasy", 
+                "Science fantasy", "Galactic fantasy", "Futuristic fantasy", "Arcane technology style", "Magitech fantasy", "Celestial sci-fi fantasy", 
+                "Space opera fantasy", "Starborn fantasy"
+            ],
+            cameras: [
+                "face close up", "worm's-eye view", "Underwater", "Under and over water view", "Underwater view with tiny slit of over water view", 
+                "Face close-up", "Extreme face close-up", "Eyes close-up", "Head and shoulders portrait", "Bust portrait", "Half-body portrait", 
+                "Full-body portrait", "Character centered portrait", "Looking directly at the viewer", "Looking away from the viewer", 
+                "Dramatic low-angle shot", "Heroic low-angle perspective", "Looking up from the ground", "Looking up through flowers", 
+                "Looking up through water", "Looking up through crystal formations", "Bird's-eye view", "Top-down view", "Aerial view", 
+                "Looking down from a cliff", "Looking down from a floating island", "Looking down through tree branches", "Overhead drone-like shot", 
+                "Over-the-shoulder view", "Side profile", "Three-quarter view", "Behind-the-back view", "First-person perspective", 
+                "Looking through an object", "Looking through foliage", "Looking through magical energy", "Looking through a crystal", 
+                "Looking through a portal", "Wide cinematic shot", "Ultra-wide landscape shot", "Establishing shot", "Medium shot", 
+                "Telephoto shot", "Panoramic shot", "Epic movie scene framing", "Character dwarfed by environment", "Character silhouetted against the horizon", 
+                "Standing in shallow water", "Floating on calm water", "Walking on mirror-like water", "Reflections dominating the scene", 
+                "Reflection-only composition", "Water-level camera view", "Fully underwater view", "Deep underwater perspective", 
+                "Underwater cave view", "Underwater abyss view", "Swimming beside giant creatures", "Looking through underwater ruins", 
+                "Half-submerged camera", "Split-level photography", "Underwater perspective showing distant shoreline", "Surface reflection combined with underwater life", 
+                "Character partly above and below water", "Looking from beneath a transparent lake", "Looking upward through crystal-clear water", 
+                "Beneath ice looking upward", "Deep ocean looking toward sunlight", "Tiny fish perspective", "Giant sea creature perspective"
+            ],
+            clothes: [
+                "2 part swimming suit", "Airship captain uniform", "Airship explorer attire", "Arcane battle dress", "Archaeologist-inspired attire", 
+                "Astral traveler robes", "Astral traveler suit", "Aurora-inspired gown", "Autumn leaf gown", "Ballroom gown", 
+                "Bioluminescent underwater attire", "Brass-and-leather adventurer gear", "Butterfly-wing cape and dress", "Celestial guardian armor", 
+                "Celestial priestess attire", "Cherry blossom kimono-inspired outfit", "Clockwork engineer attire", "Cloud-woven dress", 
+                "Constellation-themed gown", "Coral queen attire", "corset without neck or arms", "Cosmic mage robes", "Crystal armor", 
+                "Crystal gown", "Deep-sea explorer suit", "Desert wanderer robes", "Dimensional traveler attire", "Dragon knight armor", 
+                "Dragon mage outfit", "Dreamweaver robes", "dress made of fire", "Dress made of flowers", "dress made of frost", 
+                "Dress made of leaves and vines", "Dress made of moonlight", "dress made of shadows", "Dress made of starlight", 
+                "Dress woven from magical energy", "Elegant steam-age ball gown", "Elegant white beach dress", "Elven battle attire", 
+                "Embroidered royal gown", "Enchanted forest guardian attire", "Enchanted silk dress", "Ethereal spirit robes", "Explorer's travel clothes", 
+                "Fairy queen gown", "Floating silk gown", "Flower petal dress", "Flowing aquatic robes", "Futuristic explorer suit", 
+                "Galactic empress attire", "Glowing energy dress", "Golden royal armor", "High fantasy empress attire", "High-waisted vintage swimsuit", 
+                "instead of clothes her hair covers parts of her body", "instead of clothes water splashes cover parts of her body", "Jewel-encrusted dress", 
+                "Jungle explorer outfit", "Leather adventurer outfit", "Light fantasy armor", "Light-born celestial robes", "Lotus flower dress", 
+                "Lunar priestess robes", "Magical battle dress", "Mechanical wings and corset", "Mermaid tail and top", "Mermaid-inspired bikini", 
+                "Mist-covered attire", "Monster hunter outfit", "Moon-themed armor", "Moss and vine dress", "Nautical fantasy outfit", "Nebula-inspired dress", 
+                "Noblewoman's attire", "Ocean spirit dress", "One-piece swimsuit", "Ornate ceremonial armor", "Pearl-adorned swimwear", "Pearl-covered gown", 
+                "Pirate captain outfit", "Princess gown", "Queen's ceremonial dress", "Rainbow crystal dress", "Renaissance-inspired gown", "Rose-themed ball gown", 
+                "Rune-covered ceremonial robes", "Sarong with decorative jewelry", "Seafoam-inspired outfit", "Seashell top and flowing skirt", "Sheer ocean-inspired cover-up", 
+                "Silk evening dress", "Space suit", "Starwoven gown", "Steampunk corset", "Steampunk explorer outfit", "Transparent spirit robes", "Treasure hunter attire", 
+                "Tropical beach wrap and swimsuit", "Two-piece swimsuit", "Underwater royal garments", "Valkyrie-inspired armor", "Victorian mechanical dress", 
+                "Victorian-inspired dress", "Waterfall-inspired flowing gown", "Wildflower crown and dress", "wizard robes", "Woodland ranger attire"
+            ],
+            actions: [
+                "She is sitting in a shallow water enjoying the beautiful weather", "She is swimming with beautiful underwater magical creature", 
+                "She is calmly walking on a beautiful wild beach", "She is calmly walking on top of very calm water of a beautiful idyllic magical lake, the water is like a mirror, there isn't a single wave.", 
+                "She is exploring a mysterious magical swamp", "She is swimming underwater, she can breath underwater", "She is exploring underwater abys", 
+                "She is casting a spell", "She is interacting with a magical creature", "She is dreaming", "She is flying", "She is opening a magical portal", 
+                "She is lying in a field of glowing flowers beneath a star-filled sky.", "She is resting on a giant tree branch overlooking a magical valley.", 
+                "She is watching a sunset from a cliff above the ocean.", "She is floating peacefully among luminous water lilies.", "She is meditating beside an ancient waterfall.", 
+                "She is collecting beautiful seashells on a pristine beach.", "She is sitting inside a circle of giant mushrooms.", "She is enjoying the gentle rain in an enchanted forest.", 
+                "She is walking through a meadow filled with butterflies.", "She is listening to the songs of magical birds.", "She is exploring ancient ruins hidden deep in the jungle.", 
+                "She is climbing a colossal crystal formation.", "She is navigating a forgotten underground city.", "She is discovering a hidden valley untouched by time.", 
+                "She is crossing a bridge made of light.", "She is exploring floating islands in the sky.", "She is following mysterious glowing footprints.", 
+                "She is descending into a magical cavern.", "She is uncovering an ancient treasure.", "She is mapping unexplored lands.", "She is swimming through a glowing coral kingdom.", 
+                "She is riding a giant sea creature through the deep ocean.", "She is discovering a lost underwater palace.", "She is dancing among schools of colorful fish.", 
+                "She is exploring a submerged temple.", "She is communicating with ancient aquatic spirits.", "She is watching bioluminescent creatures illuminate the abyss.", 
+                "She is tending a magical underwater garden.", "She is gliding through underwater crystal tunnels.", "She is searching for a legendary pearl.", 
+                "She is reading from an ancient magical book.", "She is creating stars with her fingertips.", "She is summoning glowing spirits.", 
+                "She is weaving magical energy into intricate patterns.", "She is awakening an ancient guardian.", "She is performing a ritual beneath the full moon.", 
+                "She is speaking with celestial beings.", "She is crafting magical artifacts.", "She is enchanting a crystal with powerful magic.", 
+                "She is opening a doorway between worlds.", "She is manipulating the flow of time.", "She is creating an illusionary landscape.", 
+                "She is feeding a gentle dragon.", "She is riding a majestic flying creature.", "She is befriending a shy forest spirit.", "She is playing with magical foxes.", 
+                "She is helping an injured mythical creature.", "She is communicating with a giant whale.", "She is dancing alongside fairies.", "She is guiding a herd of luminous deer.", 
+                "She is training a young dragon.", "She is flying beside a flock of giant birds.", "She is soaring through clouds at sunrise.", "She is gliding over endless mountain ranges.", 
+                "She is riding the northern lights across the sky.", "She is flying through floating crystal arches.", "She is drifting among giant sky whales.", 
+                "She is standing on a cloud overlooking a magical world.", "She is chasing shooting stars.", "She is traveling between floating islands.", 
+                "She is surfing on a river of light in the sky.", "She is exploring celestial realms above the clouds.", "She is reliving a cherished memory.", 
+                "She is wandering through a dreamscape.", "She is gazing into a magical mirror showing possible futures.", "She is searching for someone important in a mystical realm.", 
+                "She is embracing a long-lost friend.", "She is watching memories drift through the air like lanterns.", "She is standing between dream and reality.", 
+                "She is exploring the landscape of her own imagination.", "She is following a mysterious voice through a dream.", "She is witnessing the birth of a new star.", 
+                "She is standing atop an ancient tower during a magical storm.", "She is confronting a powerful sorcerer.", "She is sealing away an ancient evil.", 
+                "She is protecting a sacred artifact.", "She is awakening a sleeping kingdom.", "She is leading a procession of magical beings.", 
+                "She is restoring life to a dying forest.", "She is forging a legendary weapon.", "She is entering a forgotten realm beyond reality.", 
+                "She is witnessing the creation of a new world.", "She is painting reality with a magical brush.", "She is walking through a forest made entirely of crystal.", 
+                "She is collecting fragments of fallen stars.", "She is planting seeds that instantly grow into enormous trees.", "She is arranging floating lanterns in the night sky.", 
+                "She is playing a magical instrument that shapes the world around her.", "She is tending a garden of glowing moons.", "She is riding on the back of a giant turtle carrying an island.", 
+                "She is walking through a field of floating crystals.", "She is gathering stardust from a cosmic river.", "She is watching giant celestial creatures move across the heavens.", 
+                "She is stepping between reflections in magical mirrors."
+            ],
+            environments: [
+                "Floating islands", "Crystal cave", "Ancient magical ruins", "Forgotten temple", "Living tree city", "Celestial observatory", 
+                "Realm between worlds", "Dragon sanctuary", "Hall of the gods", "Dream realm", "Time-distorted landscape", "Floating crystal kingdom", 
+                "Above the clouds", "Star-filled sky", "Aurora-filled sky", "Celestial realm", "Sky ocean", "Endless cloudscape", "Flying through clouds", 
+                "Storm clouds", "Rainbow skies", "Blooming meadow", "Cherry blossom grove", "Wildflower valley", "Sunny beach", "Golden fields", 
+                "Warm magical forest", "Orange forest", "Falling leaves", "Misty autumn valley", "Frozen lake", "Snow-covered forest", "Ice cave", 
+                "Arctic landscape", "Blizzard conditions", "Sunny day", "Perfect weather", "Golden hour", "Sunrise", "Sunset", "Gentle rain", 
+                "Heavy rain", "Morning mist", "Thick fog", "Snowfall", "Blizzard", "Thunderstorm", "Falling glowing petals", "Floating magical particles", 
+                "Crystal snow", "Falling stardust", "Arcane energy storm", "Glowing fog", "Aurora overhead", "Floating lanterns"
+            ]
+        };
 
+        function generateAndCopyHeroine() {
+            // Helper function to pick a random item from an array
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            
+            // Build the prompt string
+            const promptParts = [
+                heroineData.base,
+                pick(heroineData.classes),
+                pick(heroineData.styles),
+                pick(heroineData.cameras),
+                pick(heroineData.clothes),
+                pick(heroineData.actions),
+                pick(heroineData.environments)
+            ];
+            
+            // Join them all with a comma and a space
+            const finalPrompt = promptParts.join(", ");
+            
+            // Use the hidden clipboard textarea already in your HTML
+            const hiddenCb = document.getElementById('hidden-clipboard');
+            hiddenCb.value = finalPrompt;
+            hiddenCb.select();
+            
+            // Copy and show visual feedback
+            navigator.clipboard.writeText(finalPrompt).then(() => {
+                const btn = document.getElementById('btn-heroine-ui');
+                const orig = btn.innerHTML;
+                btn.innerHTML = "✨ Copied to Clipboard!";
+                btn.style.backgroundColor = "#10b981"; // Success green
+                
+                setTimeout(() => {
+                    btn.innerHTML = orig;
+                    btn.style.backgroundColor = ""; // Reset
+                }, 1500);
+            });
+        }
     </script>
 </body>
 </html>
