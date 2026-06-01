@@ -68,6 +68,10 @@
         .btn-heroine { background-color: #ec4899; color: white; }
         .btn-heroine:hover { background-color: #f472b6; }
 
+        /* Instant Paleo Button */
+        .btn-paleo { background-color: #f59e0b; color: white; }
+        .btn-paleo:hover { background-color: #fbbf24; }
+
         .search-bar {
             width: 100%;
             max-width: 300px;
@@ -289,6 +293,7 @@
             </div>
             <div class="btn-group">
                 <button class="btn-heroine" id="btn-heroine-ui" onclick="generateAndCopyHeroine()">👸 Instant Heroine</button>
+                <button class="btn-paleo" id="btn-paleo-ui" onclick="generateAndCopyPaleo()">🦖 Instant Paleo</button>
                 <button class="btn-chaos" onclick="triggerChaos()" title="Randomly select conflicting items">🌪️ Chaos</button>
                 <button class="btn-random" onclick="randomizePrompt()">🎲 Randomize</button>
                 <button class="btn-clear" onclick="clearPrompt()">Clear All</button>
@@ -977,6 +982,148 @@
                 }, 1500);
             });
         }
+
+        // --- INSTANT PALEO GENERATOR ---
+        const paleoData = {
+            base: "Ultra-high-resolution, photorealistic, scientifically accurate paleoart, incredible amount of crisp detail on the subject's textures, sharp focus on the animal, naturalistic, background is low in detail and beautifully blurred out",
+            species: [
+                // Theropods
+                "Tyrannosaurus rex", "Velociraptor", "Deinonychus", "Utahraptor", "Spinosaurus", "Allosaurus", "Carnotaurus", "Giganotosaurus", 
+                "Dilophosaurus", "Ceratosaurus", "Baryonyx", "Suchomimus", "Majungasaurus", "Tarbosaurus", "Albertosaurus", "Acrocanthosaurus", 
+                "Carcharodontosaurus", "Therizinosaurus", "Deinocheirus", "Gallimimus", "Oviraptor", "Troodon", "Yutyrannus", "Guanlong", 
+                "Microraptor", "Dakotaraptor", "Dromaeosaurus", "Gorgosaurus", "Daspletosaurus", "Alioramus", "Irritator", "Saurophaganax", 
+                "Mapusaurus", "Cryolophosaurus", "Monolophosaurus", "Megalosaurus", "Torvosaurus", "Neovenator", "Concavenator", "Australovenator", 
+                "Struthiomimus", "Ornithomimus", "Citipati", "Gigantoraptor", "Saurornithoides", "Anchiornis", "Archaeopteryx", "Buitreraptor", 
+                "Austroraptor", "Balaur", "Pyroraptor", "Saurornitholestes", "Bambiraptor", "Atrociraptor", "Acheroraptor", "Linheraptor", 
+                "Tsaagan", "Zhenyuanlong", "Changyuraptor", "Sinornithosaurus", "Mahakala", "Halszkaraptor", "Herrerasaurus", "Coelophysis", 
+                "Compsognathus", "Sinosauropteryx", "Proceratosaurus", "Stokesosaurus", "Eotyrannus", "Dryptosaurus", "Qianzhousaurus", 
+                "Nanuqsaurus", "Lythronax", "Teratophoneus", "Bistahieversor", "Zhuchengtyrannus",
+                // Herbivores (Ceratopsians, Ankylosaurs, Stegosaurs, Ornithopods, Pachycephalosaurs)
+                "Triceratops", "Torosaurus", "Styracosaurus", "Centrosaurus", "Pachyrhinosaurus", "Chasmosaurus", "Pentaceratops", "Diabloceratops", 
+                "Nasutoceratops", "Protoceratops", "Psittacosaurus", "Stegosaurus", "Kentrosaurus", "Tuojiangosaurus", "Miragaia", "Dacentrurus", 
+                "Ankylosaurus", "Euoplocephalus", "Borealopelta", "Nodosaurus", "Edmontonia", "Sauropelta", "Gastonia", "Minmi", "Pachycephalosaurus", 
+                "Stygimoloch", "Dracorex", "Homalocephale", "Stegoceras", "Iguanodon", "Muttaburrasaurus", "Ouranosaurus", "Tenontosaurus", 
+                "Camptosaurus", "Edmontosaurus", "Parasaurolophus", "Corythosaurus", "Lambeosaurus", "Tsintaosaurus", "Maiasaura", "Olorotitan", 
+                "Heterodontosaurus", "Lesothosaurus", "Scelidosaurus", "Hypsilophodon", "Dryosaurus", "Thescelosaurus", "Orodromeus", "Leaellynasaura", 
+                "Zalmoxes", "Rhabdodon", "Mochlodon",
+                // Sauropods
+                "Brachiosaurus", "Giraffatitan", "Diplodocus", "Apatosaurus", "Brontosaurus", "Camarasaurus", "Argentinosaurus", "Patagotitan", 
+                "Dreadnoughtus", "Alamosaurus", "Saltasaurus", "Amargasaurus", "Dicraeosaurus", "Nigersaurus", "Mamenchisaurus", "Omeisaurus", 
+                "Shunosaurus", "Vulcanodon", "Plateosaurus", "Massospondylus", "Lufengosaurus", "Riojasaurus",
+                // Pre-Dinosaurs, Synapsids, Early Archosaurs, Early Amphibians
+                "Dimetrodon", "Edaphosaurus", "Inostrancevia", "Gorgonops", "Scutosaurus", "Estemmenosuchus", "Moschops", "Scylacosaurus", 
+                "Cynognathus", "Thrinaxodon", "Lystrosaurus", "Placerias", "Kannemeyeria", "Dicynodon", "Ophiacodon", "Sphenacodon", 
+                "Cotylorhynchus", "Eryops", "Diplocaulus", "Prionosuchus", "Koolasuchus", "Mastodonsaurus", "Gerrothorax", "Crassigyrinus", 
+                "Ichthyostega", "Acanthostega", "Tiktaalik", "Dunkleosteus", "Titanichthys", "Bothriolepis", "Arthropleura", "Meganeura", 
+                "Pulmonoscorpius", "Jaekelopterus", "Pterygotus", "Eurypterus", "Anomalocaris", "Opabinia", "Hallucigenia", "Wiwaxia", 
+                "Trilobite", "Postosuchus", "Desmatosuchus", "Fasolasuchus", "Saurosuchus", "Prestosuchus", "Rutiodon", "Phytosaurus", 
+                "Smilosuchus", "Redondasaurus", "Aetosaurus", "Stagonolepis", "Typothorax", "Scleromochlus", "Lagosuchus", "Marasuchus", 
+                "Silesaurus", "Asilisaurus", "Euparkeria", "Proterosuchus", "Erythrosuchus", "Tanystropheus"
+            ],
+            styles: [
+                "photorealistic cinematic photograph", "shot on 35mm lens", "f/2.8 aperture", "natural organic textures", 
+                "organic lighting", "true-to-life color grading", "unedited genuine wildlife photograph", 
+                "pristine ultra-high-resolution photographic reconstruction", "advanced natural lighting", "exceptional clarity and macro-level detail", 
+                "museum paleoart illustration", "scientifically accurate digital painting", "wildlife photography documentary style", 
+                "National Geographic aesthetic", "BBC Walking with Dinosaurs aesthetic", "hyper-detailed 3d render", "Unreal Engine 5 render", 
+                "cinematic lighting", "dramatic chiaroscuro", "soft golden hour", "volumetric fog", "god rays", "lens flare", 
+                "natural sunlight", "overcast sky", "stormy lighting", "film grain", "depth of field", "tilt-shift", "macro bokeh", "motion blur"
+            ],
+            cameras: [
+                "face close-up", "extreme macro close-up of scales", "worm's-eye view", "dramatic low-angle shot", "heroic low-angle perspective", 
+                "bird's-eye view", "aerial drone view", "side profile", "three-quarter view", "wide cinematic shot", "ultra-wide landscape shot", 
+                "establishing shot", "medium wildlife shot", "telephoto lens compression", "wide angle shot", "split-level water photography", 
+                "underwater view", "looking up from the ground", "character dwarfed by environment", "character silhouetted against the horizon", 
+                "over-the-shoulder view of predator", "looking through dense foliage"
+            ],
+            actions: [
+                "stalking prey through tall grass", "leaping to attack", "tearing flesh from a carcass", "crushing a thick bone", 
+                "swallowing prey whole", "chasing a smaller animal", "ambushing from the trees", "dragging a carcass into the brush", 
+                "fishing in a shallow stream", "snapping its jaws at a flying insect", "grazing on low ferns", "browsing leaves from a tall conifer", 
+                "stripping bark from a tree", "uprooting a small bush", "chewing tough vegetation", "drinking water from a calm lake", 
+                "foraging for roots", "sniffing the air for a scent", "digging for buried eggs", "lunging forward with mouth wide open", 
+                "roaring fiercely to establish dominance", "calling out to its herd", "performing a complex mating dance", "shaking its colorful feathers", 
+                "flaring its neck frill", "headbutting a rival", "locking horns in a territorial dispute", "nuzzling its offspring", 
+                "regurgitating food for its young", "standing guard over a nest of eggs", "playfully nipping at a sibling", "running in a massive stampede", 
+                "communicating through deep subsonic rumbles", "aggressively waving its tail", "flashing warning colors on its skin", 
+                "sunning itself on a large rock to warm up", "huddling together for warmth", "following the matriarch", "challenging the alpha male", 
+                "grooming its feathers", "sprinting across an open plain", "trudging heavily through deep mud", "swimming powerfully through a river", 
+                "drifting lazily in a swamp", "breaching the water surface to breathe", "diving deep underwater", "shaking off water after a swim", 
+                "leaving massive footprints in the wet sand", "navigating a dense jungle", "climbing a steep rocky incline", 
+                "resting under the shade of a giant fern", "sleeping curled up in a ball", "waking up and stretching its limbs", 
+                "fleeing in panic from a massive predator", "cautiously stepping over a fallen log", "camouflaging itself against the foliage", 
+                "emerging from a thick morning fog", "shaking volcanic ash from its back", "roaring at a stormy sky", "observing a distant volcanic eruption",
+                "hiding perfectly still in the underbrush", "pouncing on a small lizard", "cracking open a hard-shelled mollusk", 
+                "shaking a prey item vigorously", "standing on its hind legs to reach high branches", "swatting away a swarm of prehistoric insects", 
+                "snorting loudly and stamping its feet", "vocalizing with a loud honking sound", "flapping its wings to intimidate a rival", 
+                "gliding gracefully from tree to tree", "soaring high on a thermal updraft", "diving from the sky to catch a fish", 
+                "skimming the water surface with its lower jaw", "wading through a shallow prehistoric marsh", "scratching its flank against a rough tree trunk", 
+                "rolling in the dust to remove parasites", "panting heavily in the hot midday sun", "licking its jaws clean after a meal", 
+                "scanning the horizon for danger", "freezing in place upon hearing a twig snap", "rearing up on its hind legs in defense", 
+                "swinging its heavy tail like a club", "shielding its vulnerable underbelly", "snapping viciously at an attacker", 
+                "retreating slowly while facing a threat", "limping slightly from an old injury", "displaying brightly colored crests", 
+                "inflating a large throat pouch", "bobbing its head in a territorial display", "rubbing its snout against a mate", 
+                "carefully turning an egg in the nest", "carrying a hatchling gently in its mouth", "teaching its young how to hunt", 
+                "leading its offspring to a watering hole", "protecting the herd by forming a defensive circle", "migrating across a vast arid desert", 
+                "struggling through a heavy blizzard", "crossing a dangerous raging river", "slipping on wet mossy rocks", 
+                "basking in the first rays of morning light", "seeking shelter under a rocky overhang during a storm", "staring intently into a dark cave", 
+                "snapping at a reflection in the water", "sneezing violently to clear its nasal passages", "stretching its neck to its absolute limit", 
+                "sniffing the ground tracking a blood trail", "abandoning a kill to a larger predator", "scavenging the remains of a massive sauropod", 
+                "crunching loudly on prehistoric horsetails", "plucking cycad cones from a thick stem", "swallowing gastrolith stones to aid digestion", 
+                "bellowing into the misty dawn", "listening intently to rustling in the bushes", "snapping its jaws shut with a loud crack", 
+                "shaking its head to dislodge a biting insect", "staring directly into the camera lens", "blinking slowly with reptilian eyes", 
+                "exhaling a puff of visible breath in the cold air", "drooling thickly in anticipation of a meal", "tensing its muscles before a sprint", 
+                "leaping gracefully over a wide chasm", "tumbling down a dusty embankment", "swimming with only its eyes and nostrils above water", 
+                "lying completely submerged in mud", "paddling slowly against a strong current", "exploring a tidal pool at low tide", 
+                "crunching on an armored horseshoe crab", "snapping a fern frond neatly in half", "vocalizing with a terrifying low-frequency hum", 
+                "puffing up its feathers to appear larger", "strutting proudly through its territory", "digging a deep burrow with powerful claws", 
+                "peeking cautiously out of its underground den", "scrambling up a steep muddy riverbank", "slipping stealthily into the dark water", 
+                "shaking a small mammal from its burrow", "pinning its prey to the ground with a heavy foot", "gnawing patiently on an old bone", 
+                "resting heavily with its head on the ground", "flicking its tongue out to taste the air", "shedding patches of scaly skin", 
+                "shaking out its wet plumage", "balancing perfectly on a narrow rocky ledge", "surveying its domain from a high vantage point", 
+                "prowling silently through the shadows of the forest canopy"
+            ],
+            environments: [
+                "Wigry Lake shoreline", "Muliczne lake", "Cairngorms mountain range", "dense ancient redwood forest", "tropical prehistoric jungle", 
+                "vast desert dunes", "misty moors", "rolling hills", "waterfall cascade", "active volcano in the distance", "meteor crater", 
+                "flooded coastal plains", "mesozoic swamp", "arid rocky canyon", "rocky shoreline", "prehistoric river delta", "cycad grove", 
+                "fern prairie", "volcanic ash fields", "dense coniferous forest", "shallow tidal pools", "deep ocean trench", "sunlit coral reef", 
+                "moss-covered rocky outcrop", "frozen prehistoric tundra", "ancient glacial valley", "dark subterranean cave entrance"
+            ]
+        };
+
+        function generateAndCopyPaleo() {
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            
+            const promptParts = [
+                paleoData.base,
+                pick(paleoData.species),
+                pick(paleoData.styles),
+                pick(paleoData.cameras),
+                pick(paleoData.actions),
+                pick(paleoData.environments)
+            ];
+            
+            const finalPrompt = promptParts.join(", ");
+            
+            const hiddenCb = document.getElementById('hidden-clipboard');
+            hiddenCb.value = finalPrompt;
+            hiddenCb.select();
+            
+            navigator.clipboard.writeText(finalPrompt).then(() => {
+                const btn = document.getElementById('btn-paleo-ui');
+                const orig = btn.innerHTML;
+                btn.innerHTML = "✨ Copied to Clipboard!";
+                btn.style.backgroundColor = "#10b981"; // Success green
+                
+                setTimeout(() => {
+                    btn.innerHTML = orig;
+                    btn.style.backgroundColor = ""; // Reset
+                }, 1500);
+            });
+        }
+
+        
     </script>
 </body>
 </html>
