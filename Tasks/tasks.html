@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Falls Daily Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        :root {
+            --primary: #2C3E50;
+            --accent: #27AE60;
+            --bg: #F4F7F6;
+            --card-bg: #FFFFFF;
+            --text: #333333;
+            --link: #2980B9;
+            --border: #E0E6ED;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 22px;
+            color: var(--primary);
+        }
+
+        #export-header {
+            display: none;
+            text-align: center;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(44, 62, 80, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #1A252F;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #EDF2F7;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-text {
+            text-align: right;
+            font-size: 12px;
+            font-weight: 600;
+            color: #718096;
+            margin-top: 6px;
+        }
+
+        /* Task Layout */
+        .task-row {
+            display: grid;
+            grid-template-columns: 50px 170px repeat(7, 36px);
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 6px;
+            padding: 4px 0;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .task-row:hover {
+            background: #F8FAFC;
+        }
+
+        .task-icon {
+            width: 42px;
+            height: 42px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+
+        .task-link {
+            color: var(--link);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            display: block;
+        }
+
+        .task-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Checkboxes */
+        .check-box {
+            width: 30px;
+            height: 30px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: #FFFFFF;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            margin: 0 auto;
+        }
+
+        .check-box:hover {
+            border-color: #A0AEC0;
+        }
+
+        .check-box:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+        }
+
+        .check-box:checked::after {
+            content: '✔';
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .spacer {
+            height: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="tracker-container">
+        <h2 id="export-header"></h2>
+        
+        <div class="top-bar">
+            <h1>Mystery Tracker</h1>
+            <div class="header-actions">
+                <button onclick="exportTracker()" class="btn btn-primary" id="btn-export">Export Week</button>
+                <button onclick="resetTracker()" class="btn btn-outline" id="btn-reset">Reset Board</button>
+            </div>
+        </div>
+
+        <div class="progress-wrapper" id="progress-section">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-fill"></div>
+            </div>
+            <div class="progress-text" id="progress-text">0 / 84 Daily Tasks Completed</div>
+        </div>
+
+        <div id="task-list"></div>
+    </div>
+
+    <script>
+        // Task Definition
+        const tasks = [
+            // Spanish Daily
+            {id: 'v1', title: 'Vocabulary', img: 'vocabulary.png', group: 'sd', boxes: 7},
+            {id: 'c1', title: 'Course', img: 'Etutor.png', group: 'sd', boxes: 7},
+            {id: 'c2', title: 'Course', img: 'Etutor.png', group: 'sd', boxes: 7},
+            {id: 'cj1', title: 'Conjugations', img: 'SpanishDict.png', group: 'sd', boxes: 7},
+            {id: 'v2', title: 'Vocabulary', img: 'SpanishDict.png', group: 'sd', boxes: 7},
+            {id: 'w1', title: 'Writing', img: 'writing.png', group: 'sd', boxes: 7},
+            {id: 'r1', title: 'Reading', img: 'reading.png', group: 'sd', boxes: 7},
+            {id: 's1', title: 'Speaking', img: 'speaking.png', group: 'sd', boxes: 7},
+            {id: 'l1', title: 'Listening', img: 'listening.png', group: 'sd', boxes: 7},
+
+            // Daily (Normal)
+            {id: 'g1', title: 'Gratefulness', img: 'gratefulness.png', group: 'd', boxes: 7},
+            {id: 'ge1', title: 'Geography', img: 'geography.png', group: 'd', boxes: 7},
+            {id: 'p1', title: 'Piano', img: 'piano.png', group: 'd', boxes: 7},
+
+            // Weekly
+            {id: 'cal1', title: 'Calendars', img: 'calendars.png', group: 'w', boxes: 1},
+            {id: 'med1', title: 'Medication', img: 'medication.png', group: 'w', boxes: 1},
+            {id: 'rent1', title: 'Rent', img: 'rent.png', group: 'w', boxes: 1},
+
+            // Monthly
+            {id: 'arc1', title: 'Archery', img: 'archery.png', group: 'm', boxes: 1},
+            {id: 'ep1', title: 'Everyday Picture', img: 'everydaypicture.png', group: 'm', boxes: 1},
+            {id: 'gram1', title: 'Grammapedia', img: 'grammapedia.png', group: 'm', boxes: 1},
+            {id: 'rm1', title: 'Review Maps', img: 'reviewmaps.png', group: 'm', boxes: 1},
+            {id: 'rv1', title: 'Review Vocabulary', img: 'reviewvocabulary.png', group: 'm', boxes: 1}
+        ];
+
+        // Render Tasks
+        function renderTasks() {
+            const container = document.getElementById('task-list');
+            let currentGroup = '';
+
+            tasks.forEach(task => {
+                if(currentGroup && currentGroup !== task.group) {
+                    const spacer = document.createElement('div');
+                    spacer.className = 'spacer';
+                    container.appendChild(spacer);
+                }
+                currentGroup = task.group;
+
+                const row = document.createElement('div');
+                row.className = 'task-row';
+
+                const img = document.createElement('img');
+                img.src = task.img; 
+                img.className = 'task-icon';
+                img.alt = task.title;
+
+                const titleWrap = document.createElement('div');
+                const link = document.createElement('a');
+                link.href = '#'; 
+                link.className = 'task-link';
+                link.innerText = task.title;
+                titleWrap.appendChild(link);
+
+                row.appendChild(img);
+                row.appendChild(titleWrap);
+
+                for(let i=0; i<7; i++) {
+                    if(i < task.boxes) {
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.className = 'check-box';
+                        if(task.group === 'sd' || task.group === 'd') {
+                            cb.classList.add('daily-box');
+                        }
+                        cb.id = `task_${task.id}_box_${i}`;
+                        row.appendChild(cb);
+                    } else {
+                        const empty = document.createElement('div');
+                        row.appendChild(empty);
+                    }
+                }
+                container.appendChild(row);
+            });
+        }
+
+        // Update Progress Bar
+        function updateProgress() {
+            const dailyBoxes = document.querySelectorAll('.daily-box');
+            let checked = 0;
+            dailyBoxes.forEach(box => {
+                if(box.checked) checked++;
+            });
+            const total = dailyBoxes.length; 
+            const percentage = total === 0 ? 0 : (checked / total) * 100;
+            
+            document.getElementById('progress-fill').style.width = percentage + '%';
+            document.getElementById('progress-text').innerText = `${checked} / ${total} Daily Tasks Completed`;
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTasks();
+
+            document.querySelectorAll('.check-box').forEach(box => {
+                const isChecked = localStorage.getItem(box.id) === 'true';
+                box.checked = isChecked;
+            });
+            
+            updateProgress();
+
+            document.addEventListener('change', (e) => {
+                if(e.target.classList.contains('check-box')) {
+                    localStorage.setItem(e.target.id, e.target.checked);
+                    updateProgress();
+                }
+            });
+        });
+
+        // Reset Board
+        function resetTracker() {
+            if(confirm("Are you sure you want to clear the board and start a fresh week?")) {
+                document.querySelectorAll('.check-box').forEach(box => {
+                    box.checked = false;
+                    localStorage.removeItem(box.id);
+                });
+                updateProgress();
+            }
+        }
+
+        // Export Function
+        function exportTracker() {
+            const header = document.getElementById('export-header');
+            const actions = document.querySelector('.header-actions');
+            
+            const today = new Date();
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(today.setDate(diff));
+            
+            const yyyy = monday.getFullYear();
+            const mm = String(monday.getMonth() + 1).padStart(2, '0');
+            const dd = String(monday.getDate()).padStart(2, '0');
+            
+            header.innerText = `${yyyy}.${mm}.${dd}`;
+            header.style.display = 'block';
+            actions.style.display = 'none';
+            
+            html2canvas(document.getElementById("tracker-container"), {
+                scale: 2, 
+                backgroundColor: "#FFFFFF",
+                useCORS: true 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `MysteryTracker_${yyyy}_${mm}_${dd}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                header.style.display = 'none';
+                actions.style.display = 'flex';
+            }).catch(err => {
+                alert("Image export failed. If you opened this file locally (via file://), your browser's security blocks local image exports. It will work perfectly when you host it on GitHub Pages!");
+                header.style.display = 'none';
+                actions.style.display = 'flex';
+            });
+        }
+    </script>
+</body>
+</html>
