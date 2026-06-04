@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Speedy Shopper Matrix</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface: #1e1e1e;
+            --border: #333;
+            --text: #e0e0e0;
+            --accent: #ff9800; 
+            --basket-bg: #1a237e; 
+            --btn-active: #e68a00;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        h1, h2 { margin: 0; text-transform: uppercase; letter-spacing: 1px; font-size: 1.2rem;}
+        h1 { color: var(--accent); }
+
+        /* Active Basket Layout */
+        #basket-section {
+            background: var(--basket-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        #active-basket {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            min-height: 50px;
+            align-content: flex-start;
+        }
+
+        /* Custom Input Slot */
+        #custom-entry-form {
+            display: flex;
+            gap: 10px;
+            max-width: 500px;
+        }
+        #custom-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: #2d2d2d;
+            color: var(--text);
+        }
+
+        /* Stockroom Grid Layout - CHANGED TO 100% WIDTH VERTICAL STACK */
+        #main-board {
+            flex: 1;
+            display: flex;
+            flex-direction: column; /* Forces everything into a single, full-width vertical stack */
+            gap: 20px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .category-box {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%; /* Ensures it stretches to the edges */
+            box-sizing: border-box;
+        }
+
+        .item-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* Interactive Buttons */
+        .shop-btn {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .shop-btn i { font-size: 1rem; }
+        .shop-btn:hover { background: #3d3d3d; border-color: #666; }
+        
+        .shop-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Cards inside the Active Top Basket */
+        .basket-card {
+            background: #fff;
+            color: #000;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .qty-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 0 4px;
+            color: #333;
+        }
+        .qty-btn:hover { color: var(--accent); }
+
+        .basket-remove-btn {
+            background: none;
+            border: none;
+            color: #ff5252;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 4px;
+            margin-left: 2px;
+        }
+        .basket-remove-btn:hover { color: #d32f2f; transform: scale(1.1); }
+
+        button.submit-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button.submit-btn:hover { background: var(--btn-active); }
+    </style>
+</head>
+<body>
+
+    <div id="basket-section">
+        <h1>🛒 Active Shopping Basket</h1>
+        <div id="active-basket"></div>
+    </div>
+
+    <form id="custom-entry-form">
+        <input type="text" id="custom-input" placeholder="Type unlisted item..." autocomplete="off" required>
+        <button type="submit" class="submit-btn">Add</button>
+    </form>
+
+    <div id="main-board">
+        <div class="category-box"><h2>🍏 Produce</h2><div class="item-grid" id="cat-produce"></div></div>
+        <div class="category-box"><h2>🥩 Meat & Fish</h2><div class="item-grid" id="cat-meat"></div></div>
+        <div class="category-box"><h2>🥛 Dairy & Chilled</h2><div class="item-grid" id="cat-dairy"></div></div>
+        <div class="category-box"><h2>🍞 Bakery & Breakfast</h2><div class="item-grid" id="cat-bakery"></div></div>
+        <div class="category-box"><h2>🍕 Meals & Pantry</h2><div class="item-grid" id="cat-pantry"></div></div>
+        <div class="category-box"><h2>🥤 Drinks</h2><div class="item-grid" id="cat-drinks"></div></div>
+        <div class="category-box"><h2>🍫 Sweets & Snacks</h2><div class="item-grid" id="cat-snacks"></div></div>
+        <div class="category-box"><h2>🧼 Household & Pets</h2><div class="item-grid" id="cat-household"></div></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy } 
+        from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
+            authDomain: "tasks-de4d9.firebaseapp.com",
+            databaseURL: "https://tasks-de4d9-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tasks-de4d9",
+            storageBucket: "tasks-de4d9.firebasestorage.app",
+            messagingSenderId: "908733856196",
+            appId: "1:908733856196:web:b8d268a692a0e079be4c91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const listRef = collection(db, "shopping_matrix_list");
+        const sortedQuery = query(listRef, orderBy("name", "asc"));
+
+        // MASTER MAP FOR ICON TYPES & DESIGNATIONS
+        const stockroomItems = [
+            // PRODUCE
+            { id: "apples", name: "Apples", cat: "produce", icon: "fa-apple-whole" },
+            { id: "bananas", name: "Bananas", cat: "produce", icon: "fa-bananas", fallback: "🍌" },
+            { id: "lemons", name: "Lemons", cat: "produce", icon: "fa-lemon", fallback: "🍋" },
+            { id: "cabbage", name: "Cabbage", cat: "produce", icon: "fa-seedling", fallback: "🥬" },
+            { id: "carrots", name: "Carrots", cat: "produce", icon: "fa-carrot" },
+            { id: "cauliflower", name: "Cauliflower", cat: "produce", icon: "fa-tree", fallback: "🥦" },
+            { id: "cucumbers", name: "Cucumbers", cat: "produce", icon: "fa-cucumber", fallback: "🥒" },
+            { id: "peppers", name: "Bell Peppers", cat: "produce", icon: "fa-pepper-hot", fallback: "🫑" },
+            { id: "garlic", name: "Garlic", cat: "produce", icon: "fa-garlic", fallback: "🧄" },
+            { id: "mushrooms", name: "Mushrooms", cat: "produce", icon: "fa-mushroom", fallback: "🍄" },
+            { id: "nectarines", name: "Nectarines", cat: "produce", icon: "fa-peach", fallback: "🍑" },
+            { id: "avocado", name: "Avocado", cat: "produce", icon: "fa-seedling", fallback: "🥑" },
+            { id: "onions", name: "Onions", cat: "produce", icon: "fa-circle", fallback: "🧅" },
+            { id: "oranges", name: "Oranges", cat: "produce", icon: "fa-citrus", fallback: "🍊" },
+            { id: "pears", name: "Pears", cat: "produce", icon: "fa-pear", fallback: "🍐" },
+            { id: "strawberries", name: "Strawberries", cat: "produce", icon: "fa-strawberry", fallback: "🍓" },
+            { id: "tomatoes", name: "Tomatoes", cat: "produce", icon: "fa-tomato", fallback: "🍅" },
+            { id: "potatoes", name: "Potatoes", cat: "produce", icon: "fa-cubes", fallback: "🥔" },
+
+            // MEAT & FISH
+            { id: "chicken_breasts", name: "Chicken breasts", cat: "meat", icon: "fa-drumstick-bite" },
+            { id: "mince", name: "Minced Meat", cat: "meat", icon: "fa-burger", fallback: "🥩" },
+            { id: "ham", name: "Ham", cat: "meat", icon: "fa-bacon" },
+            { id: "sausages", name: "Sausages", cat: "meat", icon: "fa-hotdog", fallback: "🌭" },
+            { id: "prawns", name: "Prawns", cat: "meat", icon: "fa-shrimp" },
+            { id: "tuna", name: "Tuna", cat: "meat", icon: "fa-fish" },
+            { id: "fish_fingers", name: "Fish Fingers", cat: "meat", icon: "fa-fish-fins", fallback: "🐟" },
+
+            // DAIRY
+            { id: "butter", name: "Butter", cat: "dairy", icon: "fa-cheese", fallback: "🧈" },
+            { id: "cheese", name: "Cheese", cat: "dairy", icon: "fa-cheese", fallback: "🧀" },
+            { id: "yogurt", name: "Yogurt", cat: "dairy", icon: "fa-bowl-rice", fallback: "🥣" },
+            { id: "milk", name: "Milk", cat: "dairy", icon: "fa-glass-water", fallback: "🥛" },
+            { id: "eggs", name: "Eggs", cat: "dairy", icon: "fa-egg", fallback: "🥚" },
+
+            // BAKERY
+            { id: "bread", name: "Bread", cat: "bakery", icon: "fa-bread-slice", fallback: "🍞" },
+            { id: "sweet_buns", name: "Sweet buns", cat: "bakery", icon: "fa-cookie", fallback: "🥐" },
+            { id: "cereal", name: "Cereal", cat: "bakery", icon: "fa-wheat-awn", fallback: "🥣" },
+            { id: "cornflakes", name: "Cornflakes", cat: "bakery", icon: "fa-bowl-food", fallback: "🥣" },
+
+            // PANTRY
+            { id: "pizza", name: "Pizza", cat: "pantry", icon: "fa-pizza-slice", fallback: "🍕" },
+            { id: "instant_noodles", name: "Instant noodles", cat: "pantry", icon: "fa-bowl-noodles", fallback: "🍜" },
+            { id: "spaghetti", name: "Spaghetti", cat: "pantry", icon: "fa-scroll", fallback: "🍝" },
+            { id: "white_rice", name: "White rice", cat: "pantry", icon: "fa-bowl-rice", fallback: "🍚" },
+            { id: "cooking_oil", name: "Cooking oil", cat: "pantry", icon: "fa-bottle-droplet", fallback: "🫙" },
+            { id: "olive_oil", name: "Olive Oil", cat: "pantry", icon: "fa-bottle-droplet", fallback: "🍾" },
+            { id: "flour", name: "Flour", cat: "pantry", icon: "fa-wheat-awn", fallback: "🌾" },
+            { id: "sugar", name: "Sugar", cat: "pantry", icon: "fa-cubes", fallback: "🧂" },
+            { id: "salt", name: "Salt", cat: "pantry", icon: "fa-cube", fallback: "🧂" },
+            { id: "pepper", name: "Black Pepper", cat: "pantry", icon: "fa-pepper-hot", fallback: "🧂" },
+            { id: "jam", name: "Jam", cat: "pantry", icon: "fa-jar", fallback: "🍯" },
+            { id: "jelly", name: "Jelly", cat: "pantry", icon: "fa-ice-cream", fallback: "🍮" },
+            { id: "ketchup", name: "Ketchup", cat: "pantry", icon: "fa-bottle-water", fallback: "🍅" },
+            { id: "mayonnaise", name: "Mayonnaise", cat: "pantry", icon: "fa-egg", fallback: "🥚" },
+            { id: "mustard", name: "Mustard", cat: "pantry", icon: "fa-bottle-water", fallback: "🌭" },
+
+            // DRINKS
+            { id: "pepsi_max", name: "Pepsi Max", cat: "drinks", icon: "fa-bottle-pop", fallback: "🥤" },
+            { id: "soft_drinks", name: "Soft drinks", cat: "drinks", icon: "fa-wine-bottle", fallback: "🥤" },
+            { id: "apple_juice", name: "Apple juice", cat: "drinks", icon: "fa-jar-wheat", fallback: "🧃" },
+            { id: "orange_juice", name: "Orange juice", cat: "drinks", icon: "fa-blender", fallback: "🧃" },
+            { id: "energy_drinks", name: "Energy drinks", cat: "drinks", icon: "fa-bolt", fallback: "⚡" },
+            { id: "ice_tea", name: "Ice Tea", cat: "drinks", icon: "fa-mug-hot", fallback: "🧊" },
+            { id: "coffee", name: "Coffee", cat: "drinks", icon: "fa-coffee", fallback: "☕" },
+            { id: "cold_coffee", name: "Cold coffee", cat: "drinks", icon: "fa-glass-water-droplet", fallback: "🧋" },
+            { id: "water", name: "Bottled Water", cat: "drinks", icon: "fa-bottle-water", fallback: "💧" },
+
+            // SNACKS & SWEETS
+            { id: "chocobonki", name: "Chocobonki", cat: "snacks", icon: "fa-candy-cane", fallback: "🍬" },
+            { id: "ptasie_mleczko", name: "Ptasie Mleczko", cat: "snacks", icon: "fa-box", fallback: "🍫" },
+            { id: "reeses", name: "Reese's", cat: "snacks", icon: "fa-cookie", fallback: "🥜" },
+            { id: "sweets", name: "Sweets", cat: "snacks", icon: "fa-candy-cane", fallback: "🍬" },
+            { id: "ice_cream", name: "Ice cream", cat: "snacks", icon: "fa-ice-cream", fallback: "🍦" },
+            { id: "ice", name: "Ice Cubes", cat: "snacks", icon: "fa-cube", fallback: "🧊" },
+            { id: "nuts", name: "Nuts", cat: "snacks", icon: "fa-seedling", fallback: "🥜" },
+            { id: "mixed_nuts", name: "Mixed nuts", cat: "snacks", icon: "fa-seedling", fallback: "🥜" },
+            { id: "popcorn", name: "Popcorn", cat: "snacks", icon: "fa-popcorn", fallback: "🍿" },
+            { id: "protein_bars", name: "Protein bars", cat: "snacks", icon: "fa-dumbbell", fallback: "🍫" },
+
+            // HOUSEHOLD
+            { id: "dog_food", name: "Dog food", cat: "household", icon: "fa-bone", fallback: "🦴" },
+            { id: "bird_seed", name: "Bird seed", cat: "household", icon: "fa-seedling", fallback: "🦜" },
+            { id: "laundry_detergent", name: "Laundry detergent", cat: "household", icon: "fa-soap", fallback: "🧺" },
+            { id: "washing_up_liquid", name: "Washing-up liquid", cat: "household", icon: "fa-faucet-drip", fallback: "🫧" },
+            { id: "soap", name: "Soap", cat: "household", icon: "fa-soap", fallback: "🧼" },
+            { id: "cleaning_wipes", name: "Cleaning wipes", cat: "household", icon: "fa-pump-medical", fallback: "🧻" },
+            { id: "kitchen_towel", name: "Kitchen towel", cat: "household", icon: "fa-scroll", fallback: "🧻" },
+            { id: "trash_bags", name: "Bin Bags", cat: "household", icon: "fa-trash", fallback: "🗑️" },
+            { id: "sponges", name: "Sponges", cat: "household", icon: "fa-soap", fallback: "🧽" },
+            { id: "shampoo", name: "Shampoo", cat: "household", icon: "fa-shower", fallback: "🧴" },
+            { id: "toothpaste", name: "Toothpaste", cat: "household", icon: "fa-tooth", fallback: "🪥" },
+            { id: "toilet_paper", name: "Toilet paper", cat: "household", icon: "fa-toilet-paper", fallback: "🧻" },
+            { id: "wet_wipes", name: "Wet wipes", cat: "household", icon: "fa-box-tissue", fallback: "🧻" }
+        ];
+
+        // RENDER THE MATRIX
+        function initializeStockroom() {
+            stockroomItems.forEach(item => {
+                const targetGrid = document.getElementById(`cat-${item.cat}`);
+                if (!targetGrid) return;
+
+                const btn = document.createElement('button');
+                btn.className = 'shop-btn';
+                btn.id = `btn-${item.id}`;
+                
+                let iconMarkup = `<i class="fa-solid ${item.icon}"></i>`;
+                if (item.fallback) {
+                    iconMarkup = `<span>${item.fallback}</span>`; 
+                }
+
+                btn.innerHTML = `${iconMarkup} ${item.name}`;
+                btn.addEventListener('click', () => toggleItemSelection(item));
+                targetGrid.appendChild(btn);
+            });
+        }
+        initializeStockroom();
+
+        // TOGGLE LOGIC SWITCH
+        async function toggleItemSelection(item) {
+            const btn = document.getElementById(`btn-${item.id}`);
+            if (btn.classList.contains('active')) {
+                const activeId = btn.getAttribute('data-doc-id');
+                if (activeId) await deleteDoc(doc(db, "shopping_matrix_list", activeId));
+            } else {
+                await addDoc(listRef, {
+                    itemId: item.id,
+                    name: item.name,
+                    quantity: 1,
+                    isCustom: false,
+                    createdAt: serverTimestamp()
+                });
+            }
+        }
+
+        // CUSTOM ITEM ADD MECHANISM
+        document.getElementById('custom-entry-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('custom-input');
+            const itemName = input.value.trim();
+            
+            if (itemName === '') return;
+
+            input.value = '';
+            input.focus();
+
+            await addDoc(listRef, {
+                itemId: "custom_" + Date.now(),
+                name: itemName,
+                quantity: 1,
+                isCustom: true,
+                createdAt: serverTimestamp()
+            });
+        });
+
+        // REAL-TIME FIRESTORE LISTENER
+        onSnapshot(sortedQuery, (snapshot) => {
+            const basketZone = document.getElementById('active-basket');
+            basketZone.innerHTML = '';
+
+            document.querySelectorAll('.shop-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.removeAttribute('data-doc-id');
+            });
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const docId = docSnap.id;
+
+                const standardBtn = document.getElementById(`btn-${data.itemId}`);
+                if (standardBtn) {
+                    standardBtn.classList.add('active');
+                    standardBtn.setAttribute('data-doc-id', docId);
+                }
+
+                const card = document.createElement('div');
+                card.className = 'basket-card';
+                card.innerHTML = `
+                    <span>${data.name}</span>
+                    <div class="quantity-controls">
+                        <button class="qty-btn" onclick="adjustQty('${docId}', ${data.quantity}, -1)">-</button>
+                        <span>${data.quantity}</span>
+                        <button class="qty-btn" onclick="adjustQty('${docId}', ${data.quantity}, 1)">+</button>
+                    </div>
+                    <button class="basket-remove-btn" title="Remove Item" onclick="removeItem('${docId}')">×</button>
+                `;
+                basketZone.appendChild(card);
+            });
+        });
+
+        // QUICK REMOVE FUNCTION
+        window.removeItem = async (docId) => {
+            await deleteDoc(doc(db, "shopping_matrix_list", docId));
+        };
+
+        // QUANTITY VARIATION PIPELINE
+        window.adjustQty = async (docId, currentQty, amount) => {
+            const docRef = doc(db, "shopping_matrix_list", docId);
+            const targetQty = currentQty + amount;
+            if (targetQty <= 0) {
+                await deleteDoc(docRef);
+            } else {
+                await updateDoc(docRef, { quantity: targetQty });
+            }
+        };
+    </script>
+</body>
+</html>
