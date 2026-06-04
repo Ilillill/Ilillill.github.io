@@ -15,23 +15,22 @@
             --drop-zone-bg: #181818; 
         }
 
-        body {
+body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text);
             margin: 0;
             padding: 20px;
             display: flex;
+            flex-direction: column; /* THIS IS THE FIX: Forces the layout to stack vertically */
             height: 100vh;
             box-sizing: border-box;
             gap: 20px;
         }
 
-        h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;}
-
         /* Layout */
         #intake-column {
-            flex: 0 0 300px;
+            /* Removed the fixed 300px width so it acts as a fluid top bar */
             background: var(--surface);
             border-radius: 8px;
             padding: 15px;
