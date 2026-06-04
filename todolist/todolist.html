@@ -259,9 +259,12 @@
             }
         };
 
-        // 4. DELETE TASK LOGIC
+        // 4. DELETE TASK LOGIC (Now with safety confirmation)
         window.deleteTask = async (taskId) => {
-            await deleteDoc(doc(db, "command_board_tasks", taskId));
+            const userConfirmed = confirm("Are you sure you want to delete this task?");
+            if (userConfirmed) {
+                await deleteDoc(doc(db, "command_board_tasks", taskId));
+            }
         };
 
         // 5. DRAG AND DROP LOGIC
