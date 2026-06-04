@@ -16,104 +16,113 @@
             --btn-active: #e68a00;
         }
 
+        /* 1. Ultra-Condensed Body */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 10px; /* Shrunk padding */
             display: flex;
             flex-direction: column;
             height: 100vh;
             box-sizing: border-box;
-            gap: 20px;
+            gap: 12px; /* Tighter gap between main elements */
         }
 
-        h1, h2 { margin: 0; text-transform: uppercase; letter-spacing: 1px; font-size: 1.2rem;}
-        h1 { color: var(--accent); }
+        h2 { margin: 0; text-transform: uppercase; letter-spacing: 1px;}
 
-        /* Active Basket Layout */
+        /* 2. Dynamic, Slim Active Basket (Title Removed) */
         #basket-section {
             background: var(--basket-bg);
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            border-radius: 6px;
+            padding: 8px; /* Extremely slim padding */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
             display: flex;
             flex-direction: column;
-            max-height: 40vh; /* This stops the basket from taking up more than 40% of the screen */
+            max-height: 40vh; 
+            min-height: 48px; /* Just tall enough to look like a clean top bar when empty */
+            box-sizing: border-box;
         }
 
         #active-basket {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-            min-height: 50px;
+            gap: 6px; /* Tighter gaps between active items */
             align-content: flex-start;
-            overflow-y: auto; /* This makes the items inside scrollable! */
-            padding-right: 5px; /* Adds a tiny bit of space so the scrollbar doesn't cover your X buttons */
+            overflow-y: auto; 
+            padding-right: 5px;
         }
 
         /* Custom Input Slot */
         #custom-entry-form {
             display: flex;
-            gap: 10px;
-            max-width: 500px;
+            gap: 8px;
         }
         #custom-input {
             flex: 1;
-            padding: 10px;
+            padding: 8px 10px; /* Slimmer textbox */
             border-radius: 4px;
             border: 1px solid var(--border);
             background: #2d2d2d;
             color: var(--text);
+            font-size: 0.9rem;
         }
 
-        /* Stockroom Grid Layout - CHANGED TO 100% WIDTH VERTICAL STACK */
+        /* 3. High-Density Main Board */
         #main-board {
             flex: 1;
             display: flex;
-            flex-direction: column; /* Forces everything into a single, full-width vertical stack */
-            gap: 20px;
+            flex-direction: column; 
+            gap: 10px; /* Reduced gap between rows */
             overflow-y: auto;
             padding-right: 5px;
         }
 
+        /* 4. Inline Category Layout */
         .category-box {
             background: var(--surface);
-            border-radius: 8px;
-            padding: 15px;
+            border-radius: 6px;
+            padding: 8px 12px; /* Condensed internal padding */
             border: 1px solid var(--border);
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%; /* Ensures it stretches to the edges */
-            box-sizing: border-box;
+            flex-direction: row; /* Forces items next to the title */
+            flex-wrap: wrap; /* Allows natural wrapping on narrow phone screens */
+            align-items: flex-start;
+            gap: 12px; /* Space between title and buttons */
+        }
+
+        .category-box h2 {
+            font-size: 0.95rem; /* Smaller font */
+            flex: 0 0 170px; /* Fixes title width so buttons align neatly down the page */
+            padding-top: 6px; /* Visually centers text with the first row of buttons */
+            color: var(--text);
         }
 
         .item-grid {
+            flex: 1 1 200px; /* Takes up remaining space, wraps if screen is too narrow */
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px; /* Tighter gaps between product buttons */
         }
 
-        /* Interactive Buttons */
+        /* 5. Shrunk Interactive Buttons */
         .shop-btn {
             background: #2d2d2d;
             border: 1px solid #444;
             color: var(--text);
-            padding: 8px 12px;
-            border-radius: 20px;
+            padding: 5px 10px; /* Much slimmer buttons */
+            border-radius: 15px; /* Slightly less rounded */
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
+            gap: 6px;
+            font-size: 0.85rem; /* Smaller font */
             user-select: none;
             transition: all 0.2s ease;
         }
 
-        .shop-btn i { font-size: 1rem; }
+        .shop-btn i { font-size: 0.9rem; }
         .shop-btn:hover { background: #3d3d3d; border-color: #666; }
         
         .shop-btn.active {
@@ -123,17 +132,18 @@
             font-weight: bold;
         }
 
-        /* Cards inside the Active Top Basket */
+        /* 6. Slimmer Active Basket Cards */
         .basket-card {
             background: #fff;
             color: #000;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 4px 8px; /* Slimmer active cards */
+            border-radius: 4px;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-size: 0.85rem;
             font-weight: 600;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             animation: popIn 0.2s ease;
         }
 
@@ -147,9 +157,9 @@
             align-items: center;
             gap: 6px;
             background: #f0f0f0;
-            padding: 2px 6px;
+            padding: 2px 4px;
             border-radius: 4px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
         }
 
         .qty-btn {
@@ -157,7 +167,7 @@
             border: none;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.9rem;
             padding: 0 4px;
             color: #333;
         }
@@ -168,9 +178,9 @@
             border: none;
             color: #ff5252;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            padding: 0 4px;
+            padding: 0 2px;
             margin-left: 2px;
         }
         .basket-remove-btn:hover { color: #d32f2f; transform: scale(1.1); }
@@ -179,9 +189,10 @@
             background: var(--accent);
             color: #000;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 16px; /* Smaller submit button */
             border-radius: 4px;
             font-weight: bold;
+            font-size: 0.9rem;
             cursor: pointer;
         }
         button.submit-btn:hover { background: var(--btn-active); }
@@ -190,7 +201,6 @@
 <body>
 
     <div id="basket-section">
-        <h1>🛒 Active Shopping Basket</h1>
         <div id="active-basket"></div>
     </div>
 
@@ -230,7 +240,6 @@
         const listRef = collection(db, "shopping_matrix_list");
         const sortedQuery = query(listRef, orderBy("name", "asc"));
 
-        // MASTER MAP FOR ICON TYPES & DESIGNATIONS
         const stockroomItems = [
             // PRODUCE
             { id: "apples", name: "Apples", cat: "produce", icon: "fa-apple-whole" },
@@ -301,6 +310,8 @@
             { id: "coffee", name: "Coffee", cat: "drinks", icon: "fa-coffee", fallback: "☕" },
             { id: "cold_coffee", name: "Cold coffee", cat: "drinks", icon: "fa-glass-water-droplet", fallback: "🧋" },
             { id: "water", name: "Bottled Water", cat: "drinks", icon: "fa-bottle-water", fallback: "💧" },
+            { id: "wine", name: "Wine", cat: "drinks", icon: "fa-wine-glass", fallback: "🍷" },
+            { id: "beer", name: "Beer", cat: "drinks", icon: "fa-beer-mug-empty", fallback: "🍺" },
 
             // SNACKS & SWEETS
             { id: "chocobonki", name: "Chocobonki", cat: "snacks", icon: "fa-candy-cane", fallback: "🍬" },
@@ -330,7 +341,6 @@
             { id: "wet_wipes", name: "Wet wipes", cat: "household", icon: "fa-box-tissue", fallback: "🧻" }
         ];
 
-        // RENDER THE MATRIX
         function initializeStockroom() {
             stockroomItems.forEach(item => {
                 const targetGrid = document.getElementById(`cat-${item.cat}`);
@@ -352,7 +362,6 @@
         }
         initializeStockroom();
 
-        // TOGGLE LOGIC SWITCH
         async function toggleItemSelection(item) {
             const btn = document.getElementById(`btn-${item.id}`);
             if (btn.classList.contains('active')) {
@@ -369,7 +378,6 @@
             }
         }
 
-        // CUSTOM ITEM ADD MECHANISM
         document.getElementById('custom-entry-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('custom-input');
@@ -389,7 +397,6 @@
             });
         });
 
-        // REAL-TIME FIRESTORE LISTENER
         onSnapshot(sortedQuery, (snapshot) => {
             const basketZone = document.getElementById('active-basket');
             basketZone.innerHTML = '';
@@ -424,12 +431,10 @@
             });
         });
 
-        // QUICK REMOVE FUNCTION
         window.removeItem = async (docId) => {
             await deleteDoc(doc(db, "shopping_matrix_list", docId));
         };
 
-        // QUANTITY VARIATION PIPELINE
         window.adjustQty = async (docId, currentQty, amount) => {
             const docRef = doc(db, "shopping_matrix_list", docId);
             const targetQty = currentQty + amount;
