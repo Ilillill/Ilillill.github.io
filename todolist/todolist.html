@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Board</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface: #1e1e1e;
+            --border: #333;
+            --text: #e0e0e0;
+            --accent: #ff9800; /* Vibrant Orange */
+            --hover-bg: #2a2a2a;
+            --drop-zone-bg: #181818; 
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            height: 100vh;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;}
+
+        /* Layout */
+        #intake-column {
+            flex: 0 0 300px;
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #main-board {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            align-items: start; 
+            align-content: start; /* <--- This forces all rows to pack tightly to the top! */
+            gap: 15px;
+            overflow-y: auto;
+            padding-right: 10px; 
+        }
+
+        .category-box {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px dashed #444; 
+            min-height: 120px; /* Slightly smaller base size */
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            height: auto; 
+        }
+
+        .category-box.drag-over {
+            border-color: var(--accent);
+            background: var(--hover-bg);
+        }
+
+        .task-list {
+            flex: 1;
+            min-height: 60px;
+            display: flex;
+            flex-direction: row; 
+            flex-wrap: wrap; 
+            align-content: flex-start; 
+            gap: 10px;
+            padding: 10px;
+            background: var(--drop-zone-bg); 
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); 
+        }
+
+        /* Task Cards */
+        .task-card {
+            background: #2d2d2d;
+            border-left: 4px solid var(--accent);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            user-select: none;
+            display: inline-flex; 
+            align-items: center;
+            width: fit-content; 
+            max-width: 100%; 
+            box-sizing: border-box;
+            gap: 10px; 
+        }
+
+        .task-card span {
+            word-break: break-word; 
+            font-size: 0.95rem;
+        }
+
+        .task-card:active { cursor: grabbing; opacity: 0.8; transform: scale(0.98); }
+        
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            margin-left: auto; 
+        }
+
+        .task-card .action-btns button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0;
+            font-size: 1.1rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .task-card .action-btns button:hover { opacity: 1; }
+        .task-card .edit-btn { color: #4dd0e1; }
+        .task-card .delete-btn { color: #ff5252; }
+
+        /* Forms */
+        #add-task-form { display: flex; gap: 10px; margin-bottom: 20px; }
+        #new-task-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: #2d2d2d;
+            color: var(--text);
+        }
+        button.submit-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button.submit-btn:hover { background: #e68a00; }
+    </style>
+</head>
+<body>
+
+    <div id="intake-column">
+        <h2>💡 New task</h2>
+        <form id="add-task-form">
+            <input type="text" id="new-task-input" placeholder="Drop a thought here..." autocomplete="off" required>
+            <button type="submit" class="submit-btn">Add</button>
+        </form>
+        <div class="task-list drop-zone" id="intake"></div>
+    </div>
+
+    <div id="main-board">
+        <div class="category-box"><h2 style="color: #ffb74d;">🧙‍♂️ Krzysio</h2><div class="task-list drop-zone" id="krzysio"></div></div>
+        <div class="category-box"><h2 style="color: #f06292;">🌷 Renatka</h2><div class="task-list drop-zone" id="renatka"></div></div>
+        <div class="category-box"><h2 style="color: #81c784;">🦖 Oliver</h2><div class="task-list drop-zone" id="oliver"></div></div>
+        <div class="category-box"><h2 style="color: #aed581;">🏕️ Adventures</h2><div class="task-list drop-zone" id="adventures"></div></div>
+        <div class="category-box"><h2 style="color: #4dd0e1;">🦉 Education</h2><div class="task-list drop-zone" id="education"></div></div>
+        <div class="category-box"><h2 style="color: #81c784;">🌳 Garden</h2><div class="task-list drop-zone" id="garden"></div></div>
+        <div class="category-box"><h2 style="color: #64b5f6;">🏡 Home</h2><div class="task-list drop-zone" id="home"></div></div>
+        <div class="category-box"><h2 style="color: #ff8a65;">🦎 Pets</h2><div class="task-list drop-zone" id="pets"></div></div>
+        <div class="category-box"><h2 style="color: #ba68c8;">🏔️ Projects</h2><div class="task-list drop-zone" id="projects"></div></div>
+        <div class="category-box"><h2 style="color: #e57373;">🛒 Shopping</h2><div class="task-list drop-zone" id="shopping"></div></div>
+        <div class="category-box"><h2 style="color: #90a4ae;">🐜 Work</h2><div class="task-list drop-zone" id="work"></div></div>
+        <div class="category-box"><h2 style="color: #dce775;">📅 Long Term</h2><div class="task-list drop-zone" id="longterm"></div></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } 
+        from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
+            authDomain: "tasks-de4d9.firebaseapp.com",
+            databaseURL: "https://tasks-de4d9-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tasks-de4d9",
+            storageBucket: "tasks-de4d9.firebasestorage.app",
+            messagingSenderId: "908733856196",
+            appId: "1:908733856196:web:b8d268a692a0e079be4c91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const tasksRef = collection(db, "command_board_tasks");
+
+        // 1. ADDING NEW TASKS (Bug-free and fast)
+        document.getElementById('add-task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('new-task-input');
+            
+            if (input.value.trim() === '') return;
+
+            const taskText = input.value;
+            
+            // Clear immediately so you can keep typing without waiting for the server
+            input.value = '';
+            input.focus();
+
+            await addDoc(tasksRef, {
+                text: taskText,
+                category: 'intake',
+                createdAt: serverTimestamp()
+            });
+        });
+
+        // 2. REAL-TIME DATABASE LISTENER
+        onSnapshot(tasksRef, (snapshot) => {
+            document.querySelectorAll('.task-list').forEach(list => list.innerHTML = '');
+
+            snapshot.forEach((docSnap) => {
+                const task = docSnap.data();
+                const taskId = docSnap.id;
+                
+                const card = document.createElement('div');
+                card.className = 'task-card';
+                card.draggable = true;
+                card.id = taskId;
+                
+                card.innerHTML = `
+                    <span>${task.text}</span>
+                    <div class="action-btns">
+                        <button class="edit-btn" onclick="editTask('${taskId}', '${task.text.replace(/'/g, "\\'")}')">✎</button>
+                        <button class="delete-btn" onclick="deleteTask('${taskId}')">×</button>
+                    </div>
+                `;
+
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', taskId);
+                    setTimeout(() => card.style.opacity = '0.5', 0);
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.style.opacity = '1';
+                });
+
+                const dropZone = document.getElementById(task.category);
+                if (dropZone) dropZone.appendChild(card);
+            });
+        });
+
+        // 3. EDIT TASK LOGIC
+        window.editTask = async (taskId, currentText) => {
+            const newText = prompt("Edit your task:", currentText);
+            if (newText !== null && newText.trim() !== "") {
+                const docRef = doc(db, "command_board_tasks", taskId);
+                await updateDoc(docRef, { text: newText.trim() });
+            }
+        };
+
+        // 4. DELETE TASK LOGIC
+        window.deleteTask = async (taskId) => {
+            await deleteDoc(doc(db, "command_board_tasks", taskId));
+        };
+
+        // 5. DRAG AND DROP LOGIC
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+                zone.parentElement.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.parentElement.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                zone.parentElement.classList.remove('drag-over');
+                
+                const taskId = e.dataTransfer.getData('text/plain');
+                const newCategory = zone.id;
+
+                const docRef = doc(db, "command_board_tasks", taskId);
+                await updateDoc(docRef, { category: newCategory });
+            });
+        });
+        
+    </script>
+</body>
+</html>
