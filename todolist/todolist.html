@@ -10,150 +10,162 @@
             --surface: #1e1e1e;
             --border: #333;
             --text: #e0e0e0;
-            --accent: #ff9800; /* Vibrant Orange */
+            --accent: #ff9800; 
             --hover-bg: #2a2a2a;
             --drop-zone-bg: #181818; 
         }
 
-body {
+        /* 1. Slimmed Down Body Padding */
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 10px; /* Reduced from 20px */
             display: flex;
-            flex-direction: column; /* THIS IS THE FIX: Forces the layout to stack vertically */
+            flex-direction: column; 
             height: 100vh;
             box-sizing: border-box;
-            gap: 20px;
+            gap: 12px; /* Tighter gap between top bar and grid */
         }
 
-        /* Layout */
+        /* 2. Ultra-Minimal Intake Bar (Header Removed) */
         #intake-column {
-            /* Removed the fixed 300px width so it acts as a fluid top bar */
             background: var(--surface);
-            border-radius: 8px;
-            padding: 15px;
+            border-radius: 6px;
+            padding: 10px; /* Slimmer padding */
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
         }
 
-#main-board {
+        #add-task-form { display: flex; gap: 8px; margin-bottom: 6px; }
+        
+        #new-task-input {
+            flex: 1;
+            padding: 8px 10px; /* Thinner textbox */
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: #2d2d2d;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        
+        button.submit-btn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 16px; /* Smaller button */
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button.submit-btn:hover { background: #e68a00; }
+
+        /* 3. Grid Locked to Max 4 Columns */
+        #main-board {
             flex: 1;
             display: grid;
-            /* Bumped to 480px: This forces fewer, much wider columns */
-            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+            /* Magic Math: Forces exactly 4 columns max, scales down smoothly on mobile */
+            grid-template-columns: repeat(auto-fit, minmax(max(280px, calc(25% - 15px)), 1fr));
             align-items: start; 
             align-content: start; 
-            gap: 20px;
+            gap: 12px; /* Tighter gaps between boxes */
             overflow-y: auto;
-            padding-right: 10px; 
+            padding-right: 5px; 
         }
 
+        /* 4. Condensed Category Boxes & Titles */
         .category-box {
             background: var(--surface);
-            border-radius: 8px;
-            padding: 15px;
-            border: 2px dashed #444; 
-            min-height: 120px; 
+            border-radius: 6px;
+            padding: 10px; /* Reduced internal padding */
+            border: 1px dashed #444; /* Thinner borders */
+            min-height: 80px; /* Squatter empty boxes */
             display: flex;
             flex-direction: column;
             transition: all 0.2s ease;
-            /* Removed height rules entirely so the box naturally stretches without breaking the grid */
         }
+
         .category-box.drag-over {
             border-color: var(--accent);
             background: var(--hover-bg);
         }
 
-.task-list {
-            flex: 1;
-            min-height: 60px;
-            display: flex;
-            flex-direction: row; 
-            flex-wrap: wrap; /* Cards will cleanly wrap like words in a paragraph */
-            align-content: flex-start; 
-            gap: 8px;
-            padding: 10px;
-            background: var(--drop-zone-bg); 
-            border-radius: 6px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); 
-            /* Removed height rules entirely so it organically expands the category box */
+        h2 { 
+            font-size: 0.95rem; /* Smaller titles */
+            margin-top: 0; 
+            margin-bottom: 8px; /* Tucked much closer to the tasks */
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
         }
 
-        /* Task Cards */
-.task-card {
+        /* 5. High-Density Task Drop Zones */
+        .task-list {
+            flex: 1;
+            min-height: 40px; /* Smaller empty drop zones */
+            display: flex;
+            flex-direction: row; 
+            flex-wrap: wrap; 
+            align-content: flex-start; 
+            gap: 6px; /* Tighter gap between tasks */
+            padding: 6px; /* Less empty space around tasks */
+            background: var(--drop-zone-bg); 
+            border-radius: 4px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); 
+        }
+
+        /* 6. Slimmer Task Cards & Buttons */
+        .task-card {
             background: #2d2d2d;
-            border-left: 4px solid var(--accent);
-            padding: 6px 10px; /* Reduced padding to make cards slimmer */
+            border-left: 3px solid var(--accent); /* Thinner accent line */
+            padding: 4px 8px; /* Very tight padding */
             border-radius: 4px;
             cursor: grab;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
             user-select: none;
             display: inline-flex; 
             align-items: center;
             width: fit-content; 
             max-width: 100%; 
             box-sizing: border-box;
-            gap: 8px; /* Tighter gap between text and buttons */
+            gap: 6px; /* Tighter spacing inside the card */
         }
 
         .task-card span {
             word-break: break-word; 
-            font-size: 0.95rem;
+            font-size: 0.85rem; /* Smaller task text */
         }
 
         .task-card:active { cursor: grabbing; opacity: 0.8; transform: scale(0.98); }
         
         .action-btns {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             margin-left: auto; 
         }
 
-.task-card .action-btns button {
+        .task-card .action-btns button {
             background: none;
             border: none;
             cursor: pointer;
             font-weight: bold;
             padding: 0;
-            font-size: 0.85rem; /* Shrunk from 1.1rem */
-            opacity: 0.7;
+            font-size: 0.85rem; /* Smaller edit/delete icons */
+            opacity: 0.6;
             transition: opacity 0.2s;
         }
         
         .task-card .action-btns button:hover { opacity: 1; }
         .task-card .edit-btn { color: #4dd0e1; }
         .task-card .delete-btn { color: #ff5252; }
-
-        /* Forms */
-        #add-task-form { display: flex; gap: 10px; margin-bottom: 20px; }
-        #new-task-input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            background: #2d2d2d;
-            color: var(--text);
-        }
-        button.submit-btn {
-            background: var(--accent);
-            color: #000;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button.submit-btn:hover { background: #e68a00; }
     </style>
 </head>
 <body>
 
     <div id="intake-column">
-        <h2>💡 New task</h2>
         <form id="add-task-form">
             <input type="text" id="new-task-input" placeholder="Drop a thought here..." autocomplete="off" required>
             <button type="submit" class="submit-btn">Add</button>
@@ -195,39 +207,27 @@ body {
         const db = getFirestore(app);
         const tasksRef = collection(db, "command_board_tasks");
 
-        // 1. ADDING NEW TASKS (Bug-free and fast)
         document.getElementById('add-task-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('new-task-input');
-            
             if (input.value.trim() === '') return;
-
             const taskText = input.value;
-            
-            // Clear immediately so you can keep typing without waiting for the server
             input.value = '';
             input.focus();
-
-            await addDoc(tasksRef, {
-                text: taskText,
-                category: 'intake',
-                createdAt: serverTimestamp()
-            });
+            try {
+                await addDoc(tasksRef, { text: taskText, category: 'intake', createdAt: serverTimestamp() });
+            } catch (error) { alert("FIREBASE ERROR: " + error.message); }
         });
 
-        // 2. REAL-TIME DATABASE LISTENER
         onSnapshot(tasksRef, (snapshot) => {
             document.querySelectorAll('.task-list').forEach(list => list.innerHTML = '');
-
             snapshot.forEach((docSnap) => {
                 const task = docSnap.data();
                 const taskId = docSnap.id;
-                
                 const card = document.createElement('div');
                 card.className = 'task-card';
                 card.draggable = true;
                 card.id = taskId;
-                
                 card.innerHTML = `
                     <span>${task.text}</span>
                     <div class="action-btns">
@@ -235,61 +235,47 @@ body {
                         <button class="delete-btn" onclick="deleteTask('${taskId}')">×</button>
                     </div>
                 `;
-
                 card.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', taskId);
                     setTimeout(() => card.style.opacity = '0.5', 0);
                 });
-
-                card.addEventListener('dragend', () => {
-                    card.style.opacity = '1';
-                });
-
+                card.addEventListener('dragend', () => card.style.opacity = '1');
                 const dropZone = document.getElementById(task.category);
                 if (dropZone) dropZone.appendChild(card);
             });
-        });
+        }, (error) => alert("LISTENER ERROR: " + error.message));
 
-        // 3. EDIT TASK LOGIC
         window.editTask = async (taskId, currentText) => {
             const newText = prompt("Edit your task:", currentText);
             if (newText !== null && newText.trim() !== "") {
-                const docRef = doc(db, "command_board_tasks", taskId);
-                await updateDoc(docRef, { text: newText.trim() });
+                try { await updateDoc(doc(db, "command_board_tasks", taskId), { text: newText.trim() }); } 
+                catch (error) { alert("FIREBASE ERROR: " + error.message); }
             }
         };
 
-        // 4. DELETE TASK LOGIC (Now with safety confirmation)
         window.deleteTask = async (taskId) => {
             const userConfirmed = confirm("Are you sure you want to delete this task?");
             if (userConfirmed) {
-                await deleteDoc(doc(db, "command_board_tasks", taskId));
+                try { await deleteDoc(doc(db, "command_board_tasks", taskId)); } 
+                catch (error) { alert("FIREBASE ERROR: " + error.message); }
             }
         };
 
-        // 5. DRAG AND DROP LOGIC
         document.querySelectorAll('.drop-zone').forEach(zone => {
             zone.addEventListener('dragover', (e) => {
                 e.preventDefault(); 
                 zone.parentElement.classList.add('drag-over');
             });
-
-            zone.addEventListener('dragleave', () => {
-                zone.parentElement.classList.remove('drag-over');
-            });
-
+            zone.addEventListener('dragleave', () => zone.parentElement.classList.remove('drag-over'));
             zone.addEventListener('drop', async (e) => {
                 e.preventDefault();
                 zone.parentElement.classList.remove('drag-over');
-                
                 const taskId = e.dataTransfer.getData('text/plain');
                 const newCategory = zone.id;
-
-                const docRef = doc(db, "command_board_tasks", taskId);
-                await updateDoc(docRef, { category: newCategory });
+                try { await updateDoc(doc(db, "command_board_tasks", taskId), { category: newCategory }); } 
+                catch (error) { alert("FIREBASE ERROR: " + error.message); }
             });
         });
-        
     </script>
 </body>
 </html>
