@@ -213,12 +213,13 @@
         const db = getFirestore(app);
 
         // Updated with live online URLs
-        const goals = [
+const goals = [
             { 
                 id: "roblox", 
                 title: "Roblox Currency (£20)", 
                 total: 50, 
-                img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Roblox_player_icon_black.svg/512px-Roblox_player_icon_black.svg.png" 
+                // Using the direct SVG link to bypass thumbnail errors
+                img: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Roblox_player_icon_black.svg" 
             },
             { 
                 id: "kaiju", 
