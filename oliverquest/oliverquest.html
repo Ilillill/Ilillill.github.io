@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oliver's Quest Log</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface: #1e1e1e;
+            --border: #333;
+            --text: #e0e0e0;
+            --accent: #ff9800; 
+            --bank-bg: #1a237e;
+            --bank-border: #3f51b5;
+            --uncollected-bg: #181818;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 10px 0;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #quest-board {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px; 
+        }
+
+        /* The Goal Card Container */
+        .goal-card {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header containing the Image and Title */
+        .goal-header {
+            background: #252525;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .goal-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            border: 2px solid #444;
+            background: #111; /* Dark background while image loads */
+        }
+
+        .goal-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .goal-title {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .goal-progress-text {
+            font-size: 0.95rem;
+            color: #aaa;
+            font-weight: bold;
+        }
+
+        .goal-progress-text span {
+            color: var(--accent);
+        }
+
+        /* The Interactive Play Area */
+        .coin-arena {
+            display: flex;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .coin-box {
+            flex: 1;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .coin-box h4 {
+            margin: 0 0 10px 0;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        /* Left Side: To Earn */
+        .to-collect {
+            background: var(--uncollected-bg);
+            border: 2px dashed #555;
+        }
+        .to-collect h4 { color: #888; }
+
+        /* Right Side: The Bank */
+        .bank {
+            background: var(--bank-bg);
+            border: 2px solid var(--bank-border);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .bank h4 { color: #8c9eff; }
+
+        .coin-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 8px;
+            min-height: 80px; 
+        }
+
+        /* The CSS Gold Coin Design */
+        .coin {
+            width: 32px;
+            height: 32px;
+            background: radial-gradient(circle, #ffe066 0%, #f57f17 100%);
+            border: 2px solid #bc5100;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.6);
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 0px #bc5100;
+            font-size: 14px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .coin:hover { 
+            transform: scale(1.15); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.8);
+        }
+        .coin:active { 
+            transform: scale(0.9); 
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 500px) {
+            .goal-header { padding: 10px; }
+            .goal-image { width: 60px; height: 60px; }
+            .goal-title { font-size: 1.05rem; }
+            .coin-arena { padding: 10px; gap: 10px; }
+            .coin { width: 28px; height: 28px; font-size: 12px;}
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎮 Quest Log</h1>
+    <div id="quest-board"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc } 
+        from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
+            authDomain: "tasks-de4d9.firebaseapp.com",
+            databaseURL: "https://tasks-de4d9-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tasks-de4d9",
+            storageBucket: "tasks-de4d9.firebasestorage.app",
+            messagingSenderId: "908733856196",
+            appId: "1:908733856196:web:b8d268a692a0e079be4c91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Updated with live online URLs
+        const goals = [
+            { 
+                id: "roblox", 
+                title: "Roblox Currency (£20)", 
+                total: 50, 
+                img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Roblox_player_icon_black.svg/512px-Roblox_player_icon_black.svg.png" 
+            },
+            { 
+                id: "kaiju", 
+                title: "GigaBash 4 Kaiju Pack (£8.99)", 
+                total: 14, 
+                img: "https://cdn.akamai.steamstatic.com/steam/apps/1546400/header.jpg" 
+            },
+            { 
+                id: "nemesis", 
+                title: "GigaBash Nemesis DLC (£4.79)", 
+                total: 8, 
+                img: "https://cdn.akamai.steamstatic.com/steam/apps/1546400/capsule_616x353.jpg" 
+            }
+        ];
+
+        let savingsState = {};
+
+        function buildBoard() {
+            const board = document.getElementById('quest-board');
+            board.innerHTML = '';
+
+            goals.forEach(goal => {
+                const card = document.createElement('div');
+                card.className = 'goal-card';
+                card.id = `card-${goal.id}`;
+                
+                card.innerHTML = `
+                    <div class="goal-header">
+                        <img src="${goal.img}" alt="${goal.title}" class="goal-image" onerror="this.src='https://via.placeholder.com/80/2a2a2a/ff9800?text=Image'">
+                        <div class="goal-info">
+                            <h3 class="goal-title">${goal.title}</h3>
+                            <div class="goal-progress-text">Collected: <span id="text-${goal.id}">0/${goal.total}</span></div>
+                        </div>
+                    </div>
+                    <div class="coin-arena">
+                        <div class="coin-box to-collect">
+                            <h4>To Earn</h4>
+                            <div class="coin-grid" id="uncollected-${goal.id}"></div>
+                        </div>
+                        <div class="coin-box bank" id="bank-box-${goal.id}">
+                            <h4>My Bank 🏦</h4>
+                            <div class="coin-grid" id="collected-${goal.id}"></div>
+                        </div>
+                    </div>
+                `;
+                board.appendChild(card);
+            });
+        }
+
+        function renderCoins(goalId) {
+            const goal = goals.find(g => g.id === goalId);
+            const collectedCount = savingsState[goalId] || 0;
+            const uncollectedCount = goal.total - collectedCount;
+
+            const uncollectedGrid = document.getElementById(`uncollected-${goalId}`);
+            const collectedGrid = document.getElementById(`collected-${goalId}`);
+            const textProgress = document.getElementById(`text-${goalId}`);
+            const bankBox = document.getElementById(`bank-box-${goalId}`);
+
+            textProgress.innerText = `${collectedCount}/${goal.total}`;
+
+            if (collectedCount >= goal.total) {
+                bankBox.style.borderColor = "#ffd700";
+                bankBox.style.boxShadow = "0 0 15px rgba(255, 215, 0, 0.4), inset 0 2px 8px rgba(0,0,0,0.5)";
+            } else {
+                bankBox.style.borderColor = "var(--bank-border)";
+                bankBox.style.boxShadow = "inset 0 2px 8px rgba(0,0,0,0.5)";
+            }
+
+            uncollectedGrid.innerHTML = '';
+            collectedGrid.innerHTML = '';
+
+            for (let i = 0; i < uncollectedCount; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                coin.innerHTML = '★';
+                coin.onclick = () => updateDatabase(goalId, 1);
+                uncollectedGrid.appendChild(coin);
+            }
+
+            for (let i = 0; i < collectedCount; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                coin.innerHTML = '★';
+                coin.onclick = () => updateDatabase(goalId, -1);
+                collectedGrid.appendChild(coin);
+            }
+        }
+
+        async function updateDatabase(goalId, change) {
+            const goal = goals.find(g => g.id === goalId);
+            let current = savingsState[goalId] || 0;
+            let newCount = current + change;
+
+            if (newCount < 0) newCount = 0;
+            if (newCount > goal.total) newCount = goal.total;
+
+            try {
+                const docRef = doc(db, "oliver_savings", goalId);
+                await setDoc(docRef, { collected: newCount }, { merge: true });
+            } catch (error) {
+                alert("Could not move coin! " + error.message);
+            }
+        }
+
+        buildBoard();
+
+        goals.forEach(goal => {
+            onSnapshot(doc(db, "oliver_savings", goal.id), (docSnap) => {
+                if (docSnap.exists()) {
+                    savingsState[goal.id] = docSnap.data().collected || 0;
+                } else {
+                    savingsState[goal.id] = 0;
+                }
+                renderCoins(goal.id);
+            });
+        });
+
+    </script>
+</body>
+</html>
