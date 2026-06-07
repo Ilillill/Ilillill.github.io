@@ -103,6 +103,34 @@
             color: var(--accent);
         }
 
+        /* Quest Actions (Edit & Delete) */
+        .quest-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.1s;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .edit-btn:hover { color: #4caf50; }
+        .delete-btn:hover { color: #f44336; }
+
         /* The Interactive Play Area */
         .coin-arena {
             display: flex;
@@ -255,6 +283,9 @@
             .goal-title { font-size: 1.05rem; }
             .coin-arena { padding: 10px; gap: 10px; }
             .coin { width: 28px; height: 28px; font-size: 12px;}
+            .quest-actions { flex-direction: row; margin-top: 10px; margin-left: 0; gap: 15px; }
+            .goal-info { flex: unset; width: 100%; }
+            .goal-header { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -278,7 +309,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, collection, addDoc, query, orderBy } 
+        import { getFirestore, doc, onSnapshot, setDoc, collection, addDoc, query, orderBy, deleteDoc, updateDoc } 
         from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -294,15 +325,14 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // We use a new collection so it doesn't collide with the old hardcoded structure
         const questsRef = collection(db, "oliver_quests_v2");
 
-        // Listen to the entire collection in real-time
-        const q = query(questsRef, orderBy("createdAt", "asc"));
+        // Changed to "desc" so newly created quests appear at the very top
+        const q = query(questsRef, orderBy("createdAt", "desc"));
         
         onSnapshot(q, (snapshot) => {
             const board = document.getElementById('quest-board');
-            board.innerHTML = ''; // Clear board before redrawing
+            board.innerHTML = ''; 
 
             snapshot.forEach((docSnap) => {
                 const quest = { id: docSnap.id, ...docSnap.data() };
@@ -322,6 +352,14 @@
                         <h3 class="goal-title">${quest.title}</h3>
                         <div class="goal-progress-text">Collected: <span>${quest.collected}/${quest.total}</span></div>
                     </div>
+                    <div class="quest-actions">
+                        <button class="action-btn edit-btn" title="Edit Quest">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" title="Delete Quest">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="coin-arena">
                     <div class="coin-box to-collect">
@@ -336,6 +374,13 @@
             `;
             
             board.appendChild(card);
+
+            // Attach event listeners for Edit and Delete buttons
+            const editBtn = card.querySelector('.edit-btn');
+            editBtn.addEventListener('click', () => editQuestData(quest));
+
+            const deleteBtn = card.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => deleteQuestData(quest.id));
 
             // Style the bank if goal is met
             const bankBox = document.getElementById(`bank-box-${quest.id}`);
@@ -353,7 +398,7 @@
                 const coin = document.createElement('div');
                 coin.className = 'coin';
                 coin.innerHTML = '★';
-                coin.onclick = () => updateDatabase(quest.id, quest.collected + 1, quest.total);
+                coin.onclick = () => updateCoinCount(quest.id, quest.collected + 1, quest.total);
                 uncollectedGrid.appendChild(coin);
             }
 
@@ -362,28 +407,68 @@
                 const coin = document.createElement('div');
                 coin.className = 'coin';
                 coin.innerHTML = '★';
-                coin.onclick = () => updateDatabase(quest.id, quest.collected - 1, quest.total);
+                coin.onclick = () => updateCoinCount(quest.id, quest.collected - 1, quest.total);
                 collectedGrid.appendChild(coin);
             }
         }
 
-        async function updateDatabase(questId, newCount, total) {
-            // Keep bounds in check
+        async function updateCoinCount(questId, newCount, total) {
             if (newCount < 0) newCount = 0;
             if (newCount > total) newCount = total;
 
             try {
                 const docRef = doc(db, "oliver_quests_v2", questId);
-                // We use setDoc with merge: true to update just the 'collected' field
                 await setDoc(docRef, { collected: newCount }, { merge: true });
             } catch (error) {
                 alert("Could not move coin! " + error.message);
             }
         }
 
+        async function editQuestData(quest) {
+            const newTitle = prompt("Edit Quest Title:", quest.title);
+            if (newTitle === null) return; 
+
+            const newImg = prompt("Edit Image URL:", quest.img);
+            if (newImg === null) return;
+
+            const newTotalStr = prompt("Edit Total Coins Needed:", quest.total);
+            if (newTotalStr === null) return;
+
+            const newTotal = parseInt(newTotalStr, 10);
+            if (isNaN(newTotal) || newTotal < 1) {
+                alert("Please enter a valid number for total coins.");
+                return;
+            }
+
+            try {
+                // Ensure collected coins don't exceed the newly set total
+                const safeCollected = quest.collected > newTotal ? newTotal : quest.collected;
+
+                const docRef = doc(db, "oliver_quests_v2", quest.id);
+                await updateDoc(docRef, {
+                    title: newTitle.trim() || quest.title,
+                    img: newImg.trim() || quest.img,
+                    total: newTotal,
+                    collected: safeCollected
+                });
+            } catch (error) {
+                alert("Error updating quest: " + error.message);
+            }
+        }
+
+        async function deleteQuestData(questId) {
+            if (confirm("Are you sure you want to delete this quest? This cannot be undone.")) {
+                try {
+                    await deleteDoc(doc(db, "oliver_quests_v2", questId));
+                } catch (error) {
+                    alert("Error deleting quest: " + error.message);
+                }
+            }
+        }
+
         // Handle adding a new quest
         document.getElementById('newQuestForm').addEventListener('submit', async (e) => {
-            e.preventDefault(); // Prevent page reload
+            e.preventDefault(); 
             
             const title = document.getElementById('questTitle').value;
             const img = document.getElementById('questImage').value;
@@ -394,16 +479,14 @@
             submitBtn.disabled = true;
 
             try {
-                // Add a new document to the collection
                 await addDoc(questsRef, {
                     title: title,
                     img: img,
                     total: total,
                     collected: 0,
-                    createdAt: Date.now() // Used to keep the newest quests at the bottom
+                    createdAt: Date.now() 
                 });
                 
-                // Clear the form
                 e.target.reset();
             } catch (error) {
                 alert("Error adding quest: " + error.message);
