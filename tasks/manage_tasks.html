@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Tasks</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary: #2C3E50;
+            --accent: #27AE60;
+            --bg: #F4F7F6;
+            --card-bg: #FFFFFF;
+            --text: #333333;
+            --link: #2980B9;
+            --border: #E0E6ED;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 820px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        h1, h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #1A252F; transform: translateY(-1px); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-danger { background: #E53E3E; color: white; }
+        .btn-danger:hover { background: #C53030; }
+
+        /* Form Area */
+        .form-section {
+            background: #F8FAFC;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #718096;
+        }
+
+        .form-input {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--link);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Task List */
+        .manage-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .manage-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            transition: 0.2s;
+        }
+
+        .manage-item:hover {
+            border-color: #A0AEC0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .item-icon {
+            width: 36px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-right: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: var(--link);
+            font-size: 14px;
+        }
+
+        .item-category {
+            font-size: 11px;
+            color: #A0AEC0;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover { background: #EDF2F7; color: var(--primary); }
+        .action-btn.delete:hover { background: #FED7D7; color: #C53030; }
+
+        .group-header {
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-bar">
+            <h1>Task Management</h1>
+            <a href="tasks.html" class="btn btn-outline">Back to Main Page</a>
+        </div>
+
+        <div class="form-section">
+            <h3 id="form-title">Add New Task</h3>
+            <div class="form-grid">
+                <div class="input-group">
+                    <label>Title</label>
+                    <input type="text" id="task-title" class="form-input" placeholder="e.g., Vocabulary">
+                </div>
+                <div class="input-group">
+                    <label>Image URL</label>
+                    <input type="text" id="task-img" class="form-input" placeholder="e.g., vocabulary.png">
+                </div>
+                <div class="input-group">
+                    <label>Link URL (Optional)</label>
+                    <input type="text" id="task-url" class="form-input" placeholder="https://...">
+                </div>
+                <div class="input-group">
+                    <label>Category</label>
+                    <select id="task-group" class="form-input">
+                        <option value="sd">Spanish Daily</option>
+                        <option value="d">Daily</option>
+                        <option value="w">Weekly</option>
+                        <option value="m">Monthly</option>
+                    </select>
+                </div>
+                <div class="form-actions" style="grid-column: span 4; justify-content: flex-end; margin-top: 5px;">
+                    <button class="btn btn-outline" id="btn-cancel" onclick="cancelEdit()" style="display: none;">Cancel</button>
+                    <button class="btn btn-primary" id="btn-save" onclick="saveTask()">Add Task</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="manage-list-container" class="manage-list">
+            </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
+            authDomain: "tasks-de4d9.firebaseapp.com",
+            databaseURL: "https://tasks-de4d9-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tasks-de4d9",
+            storageBucket: "tasks-de4d9.firebasestorage.app",
+            messagingSenderId: "908733856196",
+            appId: "1:908733856196:web:b8d268a692a0e079be4c91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let tasks = [];
+        let editingIndex = -1;
+        const tasksRef = ref(db, 'tasksList');
+
+        // Order map for clean sorting
+        const orderMap = { 'sd': 1, 'd': 2, 'w': 3, 'm': 4 };
+        const nameMap = { 'sd': 'Spanish Daily', 'd': 'Daily', 'w': 'Weekly', 'm': 'Monthly' };
+
+        onValue(tasksRef, (snapshot) => {
+            if (snapshot.exists()) {
+                tasks = snapshot.val().filter(t => t !== null);
+                renderList();
+            }
+        });
+
+        window.saveTask = function() {
+            const title = document.getElementById('task-title').value.trim();
+            const img = document.getElementById('task-img').value.trim();
+            const url = document.getElementById('task-url').value.trim();
+            const group = document.getElementById('task-group').value;
+
+            if(!title || !img) {
+                alert("Please provide both a Title and an Image URL.");
+                return;
+            }
+
+            const boxes = (group === 'sd' || group === 'd') ? 7 : 1;
+
+            if (editingIndex > -1) {
+                // Update
+                tasks[editingIndex] = { ...tasks[editingIndex], title, img, url, group, boxes };
+            } else {
+                // Add
+                const id = 't_' + Date.now(); // Unique ID for trackers
+                tasks.push({ id, title, img, url, group, boxes });
+            }
+
+            // Keep array correctly sorted so the main board renders neatly
+            tasks.sort((a, b) => orderMap[a.group] - orderMap[b.group]);
+
+            set(tasksRef, tasks);
+            window.cancelEdit();
+        };
+
+        window.editTask = function(index) {
+            const task = tasks[index];
+            document.getElementById('task-title').value = task.title;
+            document.getElementById('task-img').value = task.img;
+            document.getElementById('task-url').value = task.url || '';
+            document.getElementById('task-group').value = task.group;
+
+            editingIndex = index;
+            document.getElementById('form-title').innerText = 'Edit Task';
+            document.getElementById('btn-save').innerText = 'Save Updates';
+            document.getElementById('btn-cancel').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.deleteTask = function(index) {
+            if(confirm(`Are you sure you want to delete "${tasks[index].title}"?`)) {
+                tasks.splice(index, 1);
+                set(tasksRef, tasks);
+            }
+        };
+
+        window.cancelEdit = function() {
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-img').value = '';
+            document.getElementById('task-url').value = '';
+            document.getElementById('task-group').value = 'sd';
+            
+            editingIndex = -1;
+            document.getElementById('form-title').innerText = 'Add New Task';
+            document.getElementById('btn-save').innerText = 'Add Task';
+            document.getElementById('btn-cancel').style.display = 'none';
+        };
+
+        function renderList() {
+            const container = document.getElementById('manage-list-container');
+            container.innerHTML = '';
+            
+            let currentGroup = '';
+
+            tasks.forEach((task, index) => {
+                // Add group headers
+                if (currentGroup !== task.group) {
+                    const header = document.createElement('div');
+                    header.className = 'group-header';
+                    header.innerText = nameMap[task.group];
+                    container.appendChild(header);
+                    currentGroup = task.group;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'manage-item';
+                item.innerHTML = `
+                    <img src="${task.img}" class="item-icon" alt="icon">
+                    <div class="item-details">
+                        <span class="item-title">${task.title}</span>
+                        ${task.url ? `<span class="item-category">${task.url}</span>` : ''}
+                    </div>
+                    <button class="action-btn" onclick="editTask(${index})">⚙️ Update</button>
+                    <button class="action-btn delete" onclick="deleteTask(${index})">❌ Delete</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
