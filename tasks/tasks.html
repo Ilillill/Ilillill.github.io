@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gravity Falls Daily Tracker</title>
+    <title>Tasks</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -92,6 +92,10 @@
             background: transparent;
             border: 2px solid var(--primary);
             color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-outline:hover {
@@ -237,6 +241,10 @@
         .spacer {
             height: 8px;
         }
+
+        .spacer-large {
+            height: 28px;
+        }
     </style>
 </head>
 <body>
@@ -249,6 +257,7 @@
             <div class="header-actions">
                 <button onclick="exportTracker()" class="btn btn-primary" id="btn-export">Export Week</button>
                 <button onclick="resetTracker()" class="btn btn-outline" id="btn-reset">Reset Board</button>
+                <a href="manage_tasks.html" class="btn btn-outline" id="btn-manage">Manage</a>
             </div>
         </div>
 
@@ -264,7 +273,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
@@ -279,8 +288,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const tasks = [
-            // Spanish Daily
+        // Default tasks for the initial setup
+        const defaultTasks = [
             {id: 'v1', title: 'Vocabulary', img: 'vocabulary.png', group: 'sd', boxes: 7, url: 'https://ilillill.github.io/flashcards/flashcards.html'},
             {id: 'c1', title: 'Course', img: 'Etutor.png', group: 'sd', boxes: 7, url: 'https://www.etutor.pl/profil'},
             {id: 'c2', title: 'Course', img: 'SpanishDict.png', group: 'sd', boxes: 7, url: 'https://www.spanishdict.com/learn'},
@@ -290,18 +299,12 @@
             {id: 'r1', title: 'Reading', img: 'reading.png', group: 'sd', boxes: 7, url: 'https://gemini.google.com/app'},
             {id: 's1', title: 'Speaking', img: 'speaking.png', group: 'sd', boxes: 7},
             {id: 'l1', title: 'Listening', img: 'listening.png', group: 'sd', boxes: 7},
-
-            // Daily (Normal)
             {id: 'g1', title: 'Gratefulness', img: 'gratefulness.png', group: 'd', boxes: 7},
             {id: 'ge1', title: 'Geography', img: 'geography.png', group: 'd', boxes: 7, url: 'https://www.geoguessr.com/quiz/seterra'},
             {id: 'p1', title: 'Piano', img: 'piano.png', group: 'd', boxes: 7},
-
-            // Weekly
             {id: 'cal1', title: 'Calendars', img: 'calendars.png', group: 'w', boxes: 1, url: 'https://sharedprojects.herokuapp.com/calendar/'},
             {id: 'med1', title: 'Medication', img: 'medication.png', group: 'w', boxes: 1},
             {id: 'rent1', title: 'Rent', img: 'rent.png', group: 'w', boxes: 1, url: 'https://docs.google.com/spreadsheets/d/1pOTwHaXLZ61MEUq6j9R4gKMqBomNFPoXKisX778L-ds/edit?gid=1299269320#gid=1299269320'},
-
-            // Monthly
             {id: 'arc1', title: 'Archery', img: 'archery.png', group: 'm', boxes: 1},
             {id: 'ep1', title: 'Everyday Picture', img: 'everydaypicture.png', group: 'm', boxes: 1},
             {id: 'gram1', title: 'Grammapedia', img: 'grammapedia.png', group: 'm', boxes: 1, url: 'https://docs.google.com/spreadsheets/d/17440vWaAHU3islpjMOR4JfU6SiIX7BSLv1p7IGSBlak/edit?gid=664520474#gid=664520474'},
@@ -309,14 +312,34 @@
             {id: 'rv1', title: 'Review Vocabulary', img: 'reviewvocabulary.png', group: 'm', boxes: 1, url: 'https://ilillill.github.io/flashcards/flashcards.html'}
         ];
 
+        let tasks = [];
+        const tasksRef = ref(db, 'tasksList');
+
+        onValue(tasksRef, (snapshot) => {
+            if (snapshot.exists()) {
+                tasks = snapshot.val().filter(t => t !== null);
+            } else {
+                tasks = defaultTasks;
+                set(tasksRef, tasks);
+            }
+            renderTasks();
+            syncCheckmarks(); // Force sync of checkmarks after render
+        });
+
         function renderTasks() {
             const container = document.getElementById('task-list');
+            container.innerHTML = ''; // Clear board for fresh render
             let currentGroup = '';
 
             tasks.forEach(task => {
                 if(currentGroup && currentGroup !== task.group) {
                     const spacer = document.createElement('div');
-                    spacer.className = 'spacer';
+                    // Apply larger space between Weekly and Monthly boundaries
+                    if (task.group === 'w' || task.group === 'm') {
+                        spacer.className = 'spacer-large';
+                    } else {
+                        spacer.className = 'spacer';
+                    }
                     container.appendChild(spacer);
                 }
                 currentGroup = task.group;
@@ -372,26 +395,31 @@
                 const bankSpacer = document.createElement('div');
                 row.appendChild(bankSpacer);
 
-                // Add Minus Button
-                const minusBtn = document.createElement('button');
-                minusBtn.className = 'bank-btn minus';
-                minusBtn.innerText = '−';
-                minusBtn.onclick = () => window.updateBank(task.id, -1);
-                row.appendChild(minusBtn);
+                // Add Bank Buttons ONLY for daily tasks
+                if (task.group === 'sd' || task.group === 'd') {
+                    const minusBtn = document.createElement('button');
+                    minusBtn.className = 'bank-btn minus';
+                    minusBtn.innerText = '−';
+                    minusBtn.onclick = () => window.updateBank(task.id, -1);
+                    row.appendChild(minusBtn);
 
-                // Add Bank Count Display
-                const countDisplay = document.createElement('div');
-                countDisplay.className = 'bank-count';
-                countDisplay.id = `bank_count_${task.id}`;
-                countDisplay.innerText = '0';
-                row.appendChild(countDisplay);
+                    const countDisplay = document.createElement('div');
+                    countDisplay.className = 'bank-count';
+                    countDisplay.id = `bank_count_${task.id}`;
+                    countDisplay.innerText = '0';
+                    row.appendChild(countDisplay);
 
-                // Add Plus Button
-                const plusBtn = document.createElement('button');
-                plusBtn.className = 'bank-btn plus';
-                plusBtn.innerText = '+';
-                plusBtn.onclick = () => window.updateBank(task.id, 1);
-                row.appendChild(plusBtn);
+                    const plusBtn = document.createElement('button');
+                    plusBtn.className = 'bank-btn plus';
+                    plusBtn.innerText = '+';
+                    plusBtn.onclick = () => window.updateBank(task.id, 1);
+                    row.appendChild(plusBtn);
+                } else {
+                    // Append 3 empty divs to keep grid aligned without the buttons
+                    row.appendChild(document.createElement('div'));
+                    row.appendChild(document.createElement('div'));
+                    row.appendChild(document.createElement('div'));
+                }
 
                 container.appendChild(row);
             });
@@ -410,32 +438,32 @@
             document.getElementById('progress-text').innerText = `${checked} / ${total} Daily Tasks Completed`;
         }
 
-        renderTasks();
-
-        // Database Sync Logic
+        // Database Sync Logic for Tracking
         const dbRef = ref(db, 'trackerData');
+        let trackerDataCache = {};
         
         onValue(dbRef, (snapshot) => {
-            const data = snapshot.val() || {};
-            
-            // Sync Checkmarks
-            document.querySelectorAll('.check-box').forEach(box => {
-                box.checked = !!data[box.id]; 
-            });
-
-            // Sync Bank Counts
-            tasks.forEach(task => {
-                const countEl = document.getElementById(`bank_count_${task.id}`);
-                if (countEl) {
-                    countEl.innerText = data[`bank_${task.id}`] || 0;
-                }
-            });
-
-            updateProgress();
+            trackerDataCache = snapshot.val() || {};
+            syncCheckmarks();
         }, (error) => {
             console.error(error);
             alert("Firebase Error: Your database rules might be locked.");
         });
+
+        function syncCheckmarks() {
+            document.querySelectorAll('.check-box').forEach(box => {
+                box.checked = !!trackerDataCache[box.id]; 
+            });
+
+            tasks.forEach(task => {
+                const countEl = document.getElementById(`bank_count_${task.id}`);
+                if (countEl) {
+                    countEl.innerText = trackerDataCache[`bank_${task.id}`] || 0;
+                }
+            });
+
+            updateProgress();
+        }
 
         // Save checkmarks to Firebase
         document.addEventListener('change', (e) => {
@@ -444,7 +472,6 @@
             }
         });
 
-        // Handle Bank +/- clicks
         window.updateBank = function(taskId, changeAmount) {
             const countEl = document.getElementById(`bank_count_${taskId}`);
             if (!countEl) return;
@@ -452,28 +479,19 @@
             let currentAmount = parseInt(countEl.innerText) || 0;
             let newAmount = currentAmount + changeAmount;
             
-            // Prevent the bank from going below zero
             if (newAmount < 0) newAmount = 0; 
             
-            // Update UI instantly
             countEl.innerText = newAmount;
-            
-            // Push exact value to Firebase
             set(ref(db, `trackerData/bank_${taskId}`), newAmount);
         };
 
-        // Reset week safely without deleting banked tasks!
         window.resetTracker = function() {
             if(confirm("Are you sure you want to clear the board and start a fresh week? (Your banked tasks will be saved!)")) {
                 const updates = {};
-                
-                // Only queue up the checkboxes to be deleted
                 document.querySelectorAll('.check-box').forEach(box => {
                     box.checked = false;
                     updates[box.id] = null; 
                 });
-                
-                // Perform the targeted deletion
                 update(ref(db, 'trackerData'), updates);
                 updateProgress();
             }
@@ -496,7 +514,6 @@
             header.style.display = 'block';
             actions.style.display = 'none';
             
-            // Temporarily hide buttons for the screenshot
             const bankButtons = document.querySelectorAll('.bank-btn');
             bankButtons.forEach(btn => btn.style.display = 'none');
             
@@ -510,12 +527,11 @@
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
-                // Restore UI elements after export
                 header.style.display = 'none';
                 actions.style.display = 'flex';
                 bankButtons.forEach(btn => btn.style.display = 'flex');
             }).catch(err => {
-                alert("Image export failed. This is likely a local browser safety block. It will work perfectly when hosted on GitHub Pages!");
+                alert("Image export failed.");
                 header.style.display = 'none';
                 actions.style.display = 'flex';
                 bankButtons.forEach(btn => btn.style.display = 'flex');
