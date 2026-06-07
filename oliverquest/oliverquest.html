@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oliver's Quest Log</title>
+    <title>Oliver's Quests</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -76,7 +76,7 @@
             object-fit: cover;
             box-shadow: 0 2px 6px rgba(0,0,0,0.6);
             border: 2px solid #444;
-            background: #111; /* Dark background while image loads */
+            background: #111;
         }
 
         .goal-info {
@@ -179,6 +179,75 @@
             transform: scale(0.9); 
         }
 
+        /* Form & Divider Styles */
+        .divider {
+            width: 100%;
+            max-width: 800px;
+            border: 0;
+            height: 2px;
+            background: var(--border);
+            margin: 10px 0;
+        }
+
+        .add-quest-form {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            margin-bottom: 40px;
+        }
+
+        .add-quest-form h3 {
+            margin-top: 0;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        #newQuestForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #newQuestForm input {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #111;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        #newQuestForm input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        #newQuestForm button {
+            padding: 12px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #newQuestForm button:hover {
+            background: #e68a00;
+        }
+
         /* Mobile Adjustments */
         @media (max-width: 500px) {
             .goal-header { padding: 10px; }
@@ -191,12 +260,25 @@
 </head>
 <body>
 
-    <h1>🎮 Quest Log</h1>
+    <h1>🎮 OLIVER'S QUESTS</h1>
+    
     <div id="quest-board"></div>
+
+    <hr class="divider">
+
+    <div class="add-quest-form">
+        <h3>➕ Add a New Quest</h3>
+        <form id="newQuestForm">
+            <input type="text" id="questTitle" placeholder="Quest Title (e.g. Lego Set)" required>
+            <input type="url" id="questImage" placeholder="Image URL" required>
+            <input type="number" id="questCoins" placeholder="Total Coins Needed" min="1" required>
+            <button type="submit">Create Quest</button>
+        </form>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc } 
+        import { getFirestore, doc, onSnapshot, setDoc, collection, addDoc, query, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -211,133 +293,125 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
+        // We use a new collection so it doesn't collide with the old hardcoded structure
+        const questsRef = collection(db, "oliver_quests_v2");
 
-        // Updated with live online URLs
-const goals = [
-            { 
-                id: "roblox", 
-                title: "Roblox Currency (£20)", 
-                total: 50, 
-                // Using the direct SVG link to bypass thumbnail errors
-                img: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Roblox_player_icon_black.svg" 
-            },
-            { 
-                id: "kaiju", 
-                title: "GigaBash 4 Kaiju Pack (£8.99)", 
-                total: 14, 
-                img: "https://cdn.akamai.steamstatic.com/steam/apps/1546400/header.jpg" 
-            },
-            { 
-                id: "nemesis", 
-                title: "GigaBash Nemesis DLC (£4.79)", 
-                total: 8, 
-                img: "https://cdn.akamai.steamstatic.com/steam/apps/1546400/capsule_616x353.jpg" 
-            }
-        ];
-
-        let savingsState = {};
-
-        function buildBoard() {
+        // Listen to the entire collection in real-time
+        const q = query(questsRef, orderBy("createdAt", "asc"));
+        
+        onSnapshot(q, (snapshot) => {
             const board = document.getElementById('quest-board');
-            board.innerHTML = '';
+            board.innerHTML = ''; // Clear board before redrawing
 
-            goals.forEach(goal => {
-                const card = document.createElement('div');
-                card.className = 'goal-card';
-                card.id = `card-${goal.id}`;
-                
-                card.innerHTML = `
-                    <div class="goal-header">
-                        <img src="${goal.img}" alt="${goal.title}" class="goal-image" onerror="this.src='https://via.placeholder.com/80/2a2a2a/ff9800?text=Image'">
-                        <div class="goal-info">
-                            <h3 class="goal-title">${goal.title}</h3>
-                            <div class="goal-progress-text">Collected: <span id="text-${goal.id}">0/${goal.total}</span></div>
-                        </div>
-                    </div>
-                    <div class="coin-arena">
-                        <div class="coin-box to-collect">
-                            <h4>To Earn</h4>
-                            <div class="coin-grid" id="uncollected-${goal.id}"></div>
-                        </div>
-                        <div class="coin-box bank" id="bank-box-${goal.id}">
-                            <h4>My Bank 🏦</h4>
-                            <div class="coin-grid" id="collected-${goal.id}"></div>
-                        </div>
-                    </div>
-                `;
-                board.appendChild(card);
+            snapshot.forEach((docSnap) => {
+                const quest = { id: docSnap.id, ...docSnap.data() };
+                renderQuestCard(board, quest);
             });
-        }
+        });
 
-        function renderCoins(goalId) {
-            const goal = goals.find(g => g.id === goalId);
-            const collectedCount = savingsState[goalId] || 0;
-            const uncollectedCount = goal.total - collectedCount;
+        function renderQuestCard(board, quest) {
+            const card = document.createElement('div');
+            card.className = 'goal-card';
+            card.id = `card-${quest.id}`;
+            
+            card.innerHTML = `
+                <div class="goal-header">
+                    <img src="${quest.img}" alt="${quest.title}" class="goal-image" onerror="this.src='https://via.placeholder.com/80/2a2a2a/ff9800?text=Image'">
+                    <div class="goal-info">
+                        <h3 class="goal-title">${quest.title}</h3>
+                        <div class="goal-progress-text">Collected: <span>${quest.collected}/${quest.total}</span></div>
+                    </div>
+                </div>
+                <div class="coin-arena">
+                    <div class="coin-box to-collect">
+                        <h4>To Earn</h4>
+                        <div class="coin-grid" id="uncollected-${quest.id}"></div>
+                    </div>
+                    <div class="coin-box bank" id="bank-box-${quest.id}">
+                        <h4>My Bank 🏦</h4>
+                        <div class="coin-grid" id="collected-${quest.id}"></div>
+                    </div>
+                </div>
+            `;
+            
+            board.appendChild(card);
 
-            const uncollectedGrid = document.getElementById(`uncollected-${goalId}`);
-            const collectedGrid = document.getElementById(`collected-${goalId}`);
-            const textProgress = document.getElementById(`text-${goalId}`);
-            const bankBox = document.getElementById(`bank-box-${goalId}`);
-
-            textProgress.innerText = `${collectedCount}/${goal.total}`;
-
-            if (collectedCount >= goal.total) {
+            // Style the bank if goal is met
+            const bankBox = document.getElementById(`bank-box-${quest.id}`);
+            if (quest.collected >= quest.total) {
                 bankBox.style.borderColor = "#ffd700";
                 bankBox.style.boxShadow = "0 0 15px rgba(255, 215, 0, 0.4), inset 0 2px 8px rgba(0,0,0,0.5)";
-            } else {
-                bankBox.style.borderColor = "var(--bank-border)";
-                bankBox.style.boxShadow = "inset 0 2px 8px rgba(0,0,0,0.5)";
             }
 
-            uncollectedGrid.innerHTML = '';
-            collectedGrid.innerHTML = '';
+            const uncollectedGrid = document.getElementById(`uncollected-${quest.id}`);
+            const collectedGrid = document.getElementById(`collected-${quest.id}`);
+            const uncollectedCount = quest.total - quest.collected;
 
+            // Generate "To Earn" coins
             for (let i = 0; i < uncollectedCount; i++) {
                 const coin = document.createElement('div');
                 coin.className = 'coin';
                 coin.innerHTML = '★';
-                coin.onclick = () => updateDatabase(goalId, 1);
+                coin.onclick = () => updateDatabase(quest.id, quest.collected + 1, quest.total);
                 uncollectedGrid.appendChild(coin);
             }
 
-            for (let i = 0; i < collectedCount; i++) {
+            // Generate "Collected" coins
+            for (let i = 0; i < quest.collected; i++) {
                 const coin = document.createElement('div');
                 coin.className = 'coin';
                 coin.innerHTML = '★';
-                coin.onclick = () => updateDatabase(goalId, -1);
+                coin.onclick = () => updateDatabase(quest.id, quest.collected - 1, quest.total);
                 collectedGrid.appendChild(coin);
             }
         }
 
-        async function updateDatabase(goalId, change) {
-            const goal = goals.find(g => g.id === goalId);
-            let current = savingsState[goalId] || 0;
-            let newCount = current + change;
-
+        async function updateDatabase(questId, newCount, total) {
+            // Keep bounds in check
             if (newCount < 0) newCount = 0;
-            if (newCount > goal.total) newCount = goal.total;
+            if (newCount > total) newCount = total;
 
             try {
-                const docRef = doc(db, "oliver_savings", goalId);
+                const docRef = doc(db, "oliver_quests_v2", questId);
+                // We use setDoc with merge: true to update just the 'collected' field
                 await setDoc(docRef, { collected: newCount }, { merge: true });
             } catch (error) {
                 alert("Could not move coin! " + error.message);
             }
         }
 
-        buildBoard();
+        // Handle adding a new quest
+        document.getElementById('newQuestForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent page reload
+            
+            const title = document.getElementById('questTitle').value;
+            const img = document.getElementById('questImage').value;
+            const total = parseInt(document.getElementById('questCoins').value, 10);
+            const submitBtn = e.target.querySelector('button');
 
-        goals.forEach(goal => {
-            onSnapshot(doc(db, "oliver_savings", goal.id), (docSnap) => {
-                if (docSnap.exists()) {
-                    savingsState[goal.id] = docSnap.data().collected || 0;
-                } else {
-                    savingsState[goal.id] = 0;
-                }
-                renderCoins(goal.id);
-            });
+            submitBtn.innerText = 'Adding...';
+            submitBtn.disabled = true;
+
+            try {
+                // Add a new document to the collection
+                await addDoc(questsRef, {
+                    title: title,
+                    img: img,
+                    total: total,
+                    collected: 0,
+                    createdAt: Date.now() // Used to keep the newest quests at the bottom
+                });
+                
+                // Clear the form
+                e.target.reset();
+            } catch (error) {
+                alert("Error adding quest: " + error.message);
+            } finally {
+                submitBtn.innerText = 'Create Quest';
+                submitBtn.disabled = false;
+            }
         });
-
     </script>
 </body>
 </html>
