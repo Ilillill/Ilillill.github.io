@@ -120,14 +120,22 @@
             width: 100%;
         }
 
-        #target-banner {
+        #target-banner, #target-banner-final {
             font-size: 1.8rem;
             font-weight: bold;
             margin-bottom: 40px;
             padding: 15px 30px;
             border-radius: 10px;
-            background-color: #f9f9f9;
-            border: 2px dashed #ccc;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            user-select: none;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        #target-banner:hover, #target-banner-final:hover {
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
         }
 
         /* --- Modals --- */
@@ -158,42 +166,13 @@
 </head>
 <body>
 
-    <!-- START SCREEN -->
     <div id="start-screen" class="screen active">
-        <div id="target-banner">
-            Today's Target Deck: <span id="current-target" style="color: var(--color-green);">1</span>
+        <div id="target-banner" onclick="cycleTargetDeck()" title="Click to change target deck">
+            Today's Questions: <span class="target-display" style="color: var(--color-green);">1</span>
         </div>
 
-        <div class="control-group">
-            <select id="target-selector-start" class="btn" style="width: 250px; padding: 10px;" onchange="setTargetDeck(this.value)">
-                <option value="">-- Update Target Deck --</option>
-                <option value="1">Set Target to 1</option>
-                <option value="2">Set Target to 2</option>
-                <option value="3">Set Target to 3</option>
-                <option value="4">Set Target to 4</option>
-                <option value="5">Set Target to 5</option>
-                <option value="6">Set Target to 6</option>
-                <option value="7">Set Target to 7</option>
-                <option value="8">Set Target to 8</option>
-                <option value="9">Set Target to 9</option>
-                <option value="10">Set Target to 10</option>
-            </select>
-        </div>
-
-        <div class="control-group" style="margin-top: 30px;">
-            <select id="deck-selector" class="btn" style="width: 300px; padding: 15px; font-size: 1.1rem; border-color: var(--color-green); border-width: 2px;">
-                <option value="">-- Load a GitHub Deck --</option>
-                <option value="1">Load Deck 1</option>
-                <option value="2">Load Deck 2</option>
-                <option value="3">Load Deck 3</option>
-                <option value="4">Load Deck 4</option>
-                <option value="5">Load Deck 5</option>
-                <option value="6">Load Deck 6</option>
-                <option value="7">Load Deck 7</option>
-                <option value="8">Load Deck 8</option>
-                <option value="9">Load Deck 9</option>
-                <option value="10">Load Deck 10</option>
-            </select>
+        <div class="control-group" style="margin-top: 10px;">
+            <button class="btn" style="width: 300px; padding: 15px; font-size: 1.2rem; font-weight: bold; border-color: var(--color-green); border-width: 2px;" onclick="loadCurrentTargetDeck()">Load</button>
         </div>
 
         <p style="margin: 20px 0; color: #888;">— OR —</p>
@@ -202,9 +181,12 @@
             <input type="file" id="file-upload" accept=".csv" style="display: none;">
             <button class="btn" style="width: 200px; padding: 15px; font-size: 1.1rem;" onclick="document.getElementById('file-upload').click()">Upload Local CSV</button>
         </div>
+
+        <div class="control-group" style="margin-top: 20px;">
+            <button class="btn" style="width: 200px; padding: 10px; font-size: 1rem; color: #666;" onclick="showInstructions()">Instructions</button>
+        </div>
     </div>
 
-    <!-- MAIN APP SCREEN -->
     <div id="app-screen" class="screen">
         <div id="sidebar">
             <button class="btn" onclick="openNew()">New</button>
@@ -231,7 +213,6 @@
         </div>
     </div>
 
-    <!-- FINAL SCREEN -->
     <div id="final-screen" class="screen">
         <h1 style="font-size: 4rem; color: var(--color-green);">Well done!</h1>
         
@@ -249,26 +230,15 @@
         <div id="perfect-section" style="display: none; margin-top: 20px; text-align: center;">
             <div style="margin-bottom: 30px;">
                 <p style="font-size: 1.2rem;">Ready for the next deck tomorrow?</p>
-                <select id="target-selector-final" class="btn" style="width: 250px; padding: 10px;" onchange="setTargetDeck(this.value)">
-                    <option value="">-- Update Target Deck --</option>
-                    <option value="1">Set Target to 1</option>
-                    <option value="2">Set Target to 2</option>
-                    <option value="3">Set Target to 3</option>
-                    <option value="4">Set Target to 4</option>
-                    <option value="5">Set Target to 5</option>
-                    <option value="6">Set Target to 6</option>
-                    <option value="7">Set Target to 7</option>
-                    <option value="8">Set Target to 8</option>
-                    <option value="9">Set Target to 9</option>
-                    <option value="10">Set Target to 10</option>
-                </select>
+                <div id="target-banner-final" onclick="cycleTargetDeck()" title="Click to change target deck" style="font-size: 1.5rem; display: inline-block;">
+                    Target Deck: <span class="target-display" style="color: var(--color-green);">1</span>
+                </div>
             </div>
             <button class="btn" onclick="tryAgain()" style="width: auto;">Practice This Again</button>
             <button class="btn" onclick="openNew()" style="width: auto; margin-left: 10px;">Load New</button>
         </div>
     </div>
 
-    <!-- PREVIEW MODAL -->
     <div id="preview-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('preview-modal')">&times;</span>
@@ -277,6 +247,19 @@
                 <thead><tr><th>Question</th><th>Answer(s)</th></tr></thead>
                 <tbody id="preview-table-body"></tbody>
             </table>
+        </div>
+    </div>
+
+    <div id="instructions-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close-btn" onclick="closeModal('instructions-modal')">&times;</span>
+            <h2 style="margin-top: 0;">Updating the FlashCards</h2>
+            <ul style="line-height: 1.8; font-size: 1.1rem; text-align: left;">
+                <li>Generate new CSV files</li>
+                <li>Name them <b>1.csv</b>, <b>2.csv</b>, ..., <b>10.csv</b></li>
+                <li>Upload to <b>llillill.github.io</b> -> <b>flashcards</b></li>
+                <li>Replace the existing ones</li>
+            </ul>
         </div>
     </div>
 
@@ -298,31 +281,25 @@
         const countDisplay = document.getElementById('initial-count');
         const leftDisplay = document.getElementById('left-count');
         const bottomLeftFeedback = document.getElementById('bottom-left-feedback');
-        const deckSelector = document.getElementById('deck-selector');
         
         // --- Initialization ---
         window.onload = () => {
             // Check browser storage for the target deck, default to 1
             const savedTarget = localStorage.getItem('targetDeck') || '1';
-            document.getElementById('current-target').innerText = savedTarget;
+            document.querySelectorAll('.target-display').forEach(el => el.innerText = savedTarget);
         };
 
         // --- Memory / Target Setting ---
-        function setTargetDeck(val) {
-            if (!val) return;
-            localStorage.setItem('targetDeck', val);
-            document.getElementById('current-target').innerText = val;
-            
-            // Reset the dropdowns so they don't get stuck on a value
-            document.getElementById('target-selector-start').value = "";
-            document.getElementById('target-selector-final').value = "";
+        function cycleTargetDeck() {
+            let current = parseInt(localStorage.getItem('targetDeck') || '1');
+            current = current >= 10 ? 1 : current + 1; // Cycle 1 through 10
+            localStorage.setItem('targetDeck', current);
+            document.querySelectorAll('.target-display').forEach(el => el.innerText = current);
         }
 
         // --- GitHub Pre-loaded Deck Handling ---
-        deckSelector.addEventListener('change', function(e) {
-            const val = e.target.value;
-            if (!val) return;
-
+        function loadCurrentTargetDeck() {
+            const val = localStorage.getItem('targetDeck') || '1';
             const fileName = `${val}.csv`;
             currentFileName = `deck_${val}`;
             
@@ -335,14 +312,12 @@
                 })
                 .then(text => {
                     parseCSV(text);
-                    deckSelector.value = ""; 
                 })
                 .catch(error => {
                     alert(`Could not load ${fileName}. Make sure the file is uploaded to the same GitHub folder as your index.html file!`);
                     console.error("Fetch error:", error);
-                    deckSelector.value = "";
                 });
-        });
+        }
 
         // --- File Handling (Manual Backup) ---
         fileUpload.addEventListener('change', function(e) {
@@ -565,51 +540,3 @@
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
-        }
-
-        function copyWrong() {
-            let copyString = "Question | Answer | Note\n\n";
-            wrongDeck.forEach(item => {
-                const a2Str = item.a2 ? `/${item.a2}` : '';
-                copyString += `${item.q} - ${item.a1}${a2Str}\n`;
-            });
-            navigator.clipboard.writeText(copyString).then(() => {
-                alert("Incorrect answers copied to clipboard.");
-            });
-        }
-
-        // --- Modals & Utils ---
-        function switchScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-        }
-
-        function showPreview() {
-            const tbody = document.getElementById('preview-table-body');
-            tbody.innerHTML = '';
-            
-            (deck.length > 0 ? deck : initialDeck).forEach(item => {
-                const row = document.createElement('tr');
-                const a2Str = item.a2 ? ` / ${item.a2}` : '';
-                row.innerHTML = `<td>${item.q}</td><td>${item.a1}${a2Str}</td>`;
-                tbody.appendChild(row);
-            });
-            
-            document.getElementById('preview-modal').style.display = 'flex';
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-            if(!isAnswerState) inputField.focus();
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('preview-modal');
-            if (event.target == modal) {
-                closeModal('preview-modal');
-            }
-        }
-    </script>
-</body>
-</html>
