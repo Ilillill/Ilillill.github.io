@@ -540,3 +540,59 @@
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
+        }
+
+        function copyWrong() {
+            let copyString = "Question | Answer | Note\n\n";
+            wrongDeck.forEach(item => {
+                const a2Str = item.a2 ? `/${item.a2}` : '';
+                copyString += `${item.q} - ${item.a1}${a2Str}\n`;
+            });
+            navigator.clipboard.writeText(copyString).then(() => {
+                alert("Incorrect answers copied to clipboard.");
+            });
+        }
+
+        // --- Modals & Utils ---
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showPreview() {
+            const tbody = document.getElementById('preview-table-body');
+            tbody.innerHTML = '';
+            
+            (deck.length > 0 ? deck : initialDeck).forEach(item => {
+                const row = document.createElement('tr');
+                const a2Str = item.a2 ? ` / ${item.a2}` : '';
+                row.innerHTML = `<td>${item.q}</td><td>${item.a1}${a2Str}</td>`;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('preview-modal').style.display = 'flex';
+        }
+
+        function showInstructions() {
+            document.getElementById('instructions-modal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+            if(!isAnswerState) inputField.focus();
+        }
+
+        window.onclick = function(event) {
+            const previewModal = document.getElementById('preview-modal');
+            const instructionsModal = document.getElementById('instructions-modal');
+            
+            if (event.target == previewModal) {
+                closeModal('preview-modal');
+            } else if (event.target == instructionsModal) {
+                closeModal('instructions-modal');
+            }
+        }
+    </script>
+</body>
+</html>
