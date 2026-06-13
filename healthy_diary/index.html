@@ -102,4 +102,406 @@
 
     <div id="dashboard" class="section active">
         
-        <div class="weight-summary" style="margin-top:
+        <div class="weight-summary" style="margin-top: 10px;">
+            <div class="summary-col start-col">
+                <div class="badge">Start</div>
+                <div class="weight-val" id="sum-start-weight">-- kg</div>
+                <div class="sub-val" id="sum-total-lose">-- kg</div>
+            </div>
+            <div class="summary-col current-col">
+                <div class="badge">Current</div>
+                <div class="weight-val" id="sum-current-weight">-- kg</div>
+                <div class="sub-val" id="sum-current-lost">-- kg lost</div>
+            </div>
+            <div class="summary-col goal-col">
+                <div class="badge">Goal</div>
+                <div class="weight-val" id="sum-goal-weight">-- kg</div>
+                <div class="sub-val" id="sum-left-lose">-- kg left</div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Current BMI</h3><p id="stat-bmi">--</p></div>
+            <div class="stat-card"><h3>Est. Days to Goal</h3><p id="stat-eta">--</p></div>
+        </div>
+        
+        <div class="graph-controls">
+            <label for="graphType">Graph Style:</label>
+            <select id="graphType">
+                <option value="line-smooth">Smooth Line</option>
+                <option value="line-straight">Straight Line</option>
+                <option value="bar">Bar Chart</option>
+            </select>
+        </div>
+        <div style="position: relative; width: 100%; height: 450px;">
+            <canvas id="weightChart"></canvas>
+        </div>
+    </div>
+
+    <div id="entries" class="section">
+        <h2>Daily Entry</h2>
+        <form id="entryForm" class="entry-form">
+            <input type="date" id="entryDate" required>
+            <input type="number" id="entryWeight" step="0.1" placeholder="Weight (kg)" required>
+            <input type="text" id="entryNote" placeholder="Notes (optional)">
+            <button type="submit" id="submitBtn">Save Entry</button>
+            <button type="button" id="cancelEditBtn" style="display: none; background: #6b7280;" onclick="cancelEdit()">Cancel</button>
+        </form>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Weight (kg)</th>
+                    <th>Trend</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="entriesTableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="achievements" class="section">
+        <h2>Milestones & Fun Goals</h2>
+        <div class="achievements-grid" id="achievementsContainer"></div>
+    </div>
+
+    <div id="settings" class="section">
+        <h2>App Settings</h2>
+        <form id="settingsForm" class="settings-form">
+            <label for="setStartWeight">Start Weight (kg):</label>
+            <input type="number" id="setStartWeight" step="0.1" required>
+            
+            <label for="setGoalWeight">Goal Weight (kg):</label>
+            <input type="number" id="setGoalWeight" step="0.1" required>
+            
+            <label for="setHeight">Height (m):</label>
+            <input type="number" id="setHeight" step="0.01" required>
+            
+            <button type="submit">Save Configuration</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
+        authDomain: "tasks-de4d9.firebaseapp.com",
+        databaseURL: "https://tasks-de4d9-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "tasks-de4d9",
+        storageBucket: "tasks-de4d9.firebasestorage.app",
+        messagingSenderId: "908733856196",
+        appId: "1:908733856196:web:b8d268a692a0e079be4c91"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let settings = { startWeight: 120, goalWeight: 90, height: 1.94, graphType: 'line-smooth' };
+    let entries = [];
+    let chartInstance = null;
+    let currentlyEditingId = null;
+
+    const achievementList = [
+        { title: "Jumping Spider", target: 0.1, emoji: "🕷️" },
+        { title: "Budgie", target: 0.2, emoji: "🦜" },
+        { title: "Megaraptor Claw", target: 0.3, emoji: "🦖" },
+        { title: "Tarantula", target: 0.4, emoji: "🕷️" },
+        { title: "Corn Snake", target: 0.5, emoji: "🐍" },
+        { title: "Cockatiel", target: 0.6, emoji: "🦜" },
+        { title: "Compsognathus", target: 0.8, emoji: "🦕" },
+        { title: "Dilophosaurus Crest", target: 1.0, emoji: "🦴" },
+        { title: "Amur Rat Snake", target: 1.2, emoji: "🐍" },
+        { title: "A Duck!", target: 1.5, emoji: "🦆" },
+        { title: "Rainbow Boa", target: 1.8, emoji: "🌈" },
+        { title: "Ball Python", target: 2.0, emoji: "🐍" },
+        { title: "Cairngorms Rock", target: 2.5, emoji: "⛰️" },
+        { title: "Fossilized Ammonite", target: 3.0, emoji: "🐚" },
+        { title: "Lake Wigry Pike", target: 4.0, emoji: "🐟" },
+        { title: "5kg Milestone", target: 5.0, emoji: "⭐" },
+        { title: "Red-tailed Boa", target: 8.0, emoji: "🐍" },
+        { title: "10kg Milestone", target: 10.0, emoji: "🌟" },
+        { title: "15kg Milestone", target: 15.0, emoji: "✨" },
+        { title: "100 Hamsters", target: 16.0, emoji: "🐹" },
+        { title: "20kg Milestone", target: 20.0, emoji: "🏆" },
+        { title: "Medium Dog", target: 23.0, emoji: "🐕" },
+        { title: "25kg Milestone", target: 25.0, emoji: "👑" }
+    ];
+
+    onValue(ref(db, 'healthy_diary/settings'), (snapshot) => {
+        if (snapshot.exists()) {
+            settings = { ...settings, ...snapshot.data() };
+        }
+        document.getElementById("setStartWeight").value = parseFloat(settings.startWeight);
+        document.getElementById("setGoalWeight").value = parseFloat(settings.goalWeight);
+        document.getElementById("setHeight").value = parseFloat(settings.height);
+        document.getElementById("graphType").value = settings.graphType || 'line-smooth';
+        updateUI();
+    });
+
+    onValue(ref(db, 'healthy_diary/entries'), (snapshot) => {
+        entries = [];
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            entries = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            }));
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+        updateUI();
+    });
+
+    function updateUI() {
+        renderTable();
+        renderStats();
+        renderChart();
+        renderAchievements();
+    }
+
+    function renderStats() {
+        const startWeight = parseFloat(settings.startWeight);
+        const goalWeight = parseFloat(settings.goalWeight);
+        const height = parseFloat(settings.height);
+        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : startWeight;
+
+        const totalToLose = startWeight - goalWeight;
+        const totalLost = startWeight - currentWeight;
+        const leftToLose = currentWeight - goalWeight;
+        const bmi = currentWeight / (height * height);
+
+        document.getElementById("sum-start-weight").innerText = `${startWeight.toFixed(1)}kg`;
+        document.getElementById("sum-total-lose").innerText = `${totalToLose.toFixed(1)}kg to lose`;
+        
+        document.getElementById("sum-current-weight").innerText = `${currentWeight.toFixed(1)}kg`;
+        document.getElementById("sum-current-lost").innerText = `${totalLost.toFixed(1)}kg lost`;
+
+        document.getElementById("sum-goal-weight").innerText = `${goalWeight.toFixed(1)}kg`;
+        document.getElementById("sum-left-lose").innerText = `${leftToLose.toFixed(1)}kg left`;
+
+        let etaText = "Need more entries";
+        if (entries.length >= 2 && totalLost > 0) {
+            const firstDate = new Date(entries[0].date);
+            const lastDate = new Date(entries[entries.length - 1].date);
+            const daysPassed = (lastDate - firstDate) / (1000 * 60 * 60 * 24) || 1;
+            
+            const totalLossInPeriod = entries[0].weight - currentWeight;
+            const lossPerDay = totalLossInPeriod / daysPassed;
+            
+            if (leftToLose > 0 && lossPerDay > 0) {
+                const daysLeft = Math.ceil(leftToLose / lossPerDay);
+                etaText = `${daysLeft} days`;
+            } else if (leftToLose <= 0) {
+                etaText = "Goal Achieved! 🎉";
+            } else {
+                etaText = "Weight stable";
+            }
+        }
+
+        document.getElementById("stat-bmi").innerText = bmi.toFixed(1);
+        document.getElementById("stat-eta").innerText = etaText;
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById("entriesTableBody");
+        tbody.innerHTML = "";
+        
+        [...entries].reverse().forEach((entry, index, arr) => {
+            const nextInReversed = arr[index + 1]; 
+            let trendEmoji = "⏺️";
+            
+            if (nextInReversed) {
+                if (entry.weight < nextInReversed.weight) trendEmoji = "🔽";
+                else if (entry.weight > nextInReversed.weight) trendEmoji = "🔼";
+            } else {
+                if (entry.weight < settings.startWeight) trendEmoji = "🔽";
+                else if (entry.weight > settings.startWeight) trendEmoji = "🔼";
+            }
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${entry.date}</td>
+                <td><strong>${parseFloat(entry.weight).toFixed(1)} kg</strong></td>
+                <td style="font-size: 1.2rem;">${trendEmoji}</td>
+                <td>${entry.note || ""}</td>
+                <td class="actions">
+                    <button class="edit" onclick="editEntry('${entry.id}', '${entry.date}', ${entry.weight}, '${(entry.note || "").replace(/'/g, "\\'")}')">Edit</button>
+                    <button class="danger" onclick="deleteEntry('${entry.id}')">❌</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        
+        const labels = entries.length > 0 ? entries.map(e => e.date) : ["Start"];
+        const data = entries.length > 0 ? entries.map(e => parseFloat(e.weight)) : [parseFloat(settings.startWeight)];
+        
+        const strictGoalWeight = parseFloat(settings.goalWeight);
+        const strictStartWeight = parseFloat(settings.startWeight);
+        const goalData = Array(labels.length).fill(strictGoalWeight);
+
+        let type = 'line';
+        let tension = 0.3;
+
+        if (settings.graphType === 'line-straight') tension = 0;
+        if (settings.graphType === 'bar') type = 'bar';
+
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Weight Track (kg)',
+                        data: data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: type === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.05)',
+                        borderWidth: 3,
+                        tension: tension,
+                        fill: type === 'line',
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Target Goal Line',
+                        data: goalData,
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        borderDash: [6, 6],
+                        type: 'line',
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: Math.min(strictGoalWeight, ...data) - 3,
+                        max: Math.max(strictStartWeight, ...data) + 3
+                    }
+                }
+            }
+        });
+    }
+
+    function renderAchievements() {
+        const container = document.getElementById("achievementsContainer");
+        container.innerHTML = "";
+        
+        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : parseFloat(settings.startWeight);
+        const totalLost = parseFloat(settings.startWeight) - currentWeight;
+
+        const sorted = [...achievementList].sort((a, b) => a.target - b.target);
+
+        sorted.forEach(ach => {
+            const isUnlocked = totalLost >= ach.target;
+            const percent = Math.min((totalLost / ach.target) * 100, 100);
+            
+            const card = document.createElement("div");
+            card.className = `achievement-card ${isUnlocked ? 'unlocked' : ''}`;
+            card.innerHTML = `
+                <div class="emoji">${ach.emoji}</div>
+                <div class="ach-title">${ach.title}</div>
+                <div class="ach-target">${ach.target.toFixed(1)}kg lost</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${isUnlocked ? 100 : percent}%"></div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    window.editEntry = function(id, date, weight, note) {
+        document.getElementById("entryDate").value = date;
+        document.getElementById("entryWeight").value = weight;
+        document.getElementById("entryNote").value = note;
+        
+        currentlyEditingId = id;
+        document.getElementById("submitBtn").innerText = "Update Entry";
+        document.getElementById("cancelEditBtn").style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEdit = function() {
+        currentlyEditingId = null;
+        document.getElementById("entryForm").reset();
+        document.getElementById("entryDate").valueAsDate = new Date();
+        document.getElementById("submitBtn").innerText = "Save Entry";
+        document.getElementById("cancelEditBtn").style.display = "none";
+    };
+
+    window.deleteEntry = function(id) {
+        if (confirm("Are you sure you want to permanently delete this entry?")) {
+            remove(ref(db, `healthy_diary/entries/${id}`));
+            if (currentlyEditingId === id) cancelEdit();
+        }
+    };
+
+    document.getElementById("entryForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const date = document.getElementById("entryDate").value;
+        const weight = parseFloat(document.getElementById("entryWeight").value);
+        const note = document.getElementById("entryNote").value;
+
+        const conflict = entries.some(el => el.date === date && el.id !== currentlyEditingId);
+        if (conflict) {
+            alert("An entry for this date already exists!");
+            return;
+        }
+
+        if (currentlyEditingId) {
+            update(ref(db, `healthy_diary/entries/${currentlyEditingId}`), { date, weight, note });
+            cancelEdit();
+        } else {
+            const entriesRef = ref(db, 'healthy_diary/entries');
+            const newEntryRef = push(entriesRef);
+            set(newEntryRef, { date, weight, note });
+            document.getElementById("entryForm").reset();
+            document.getElementById("entryDate").valueAsDate = new Date();
+        }
+    });
+
+    document.getElementById("settingsForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const startWeight = parseFloat(document.getElementById("setStartWeight").value);
+        const goalWeight = parseFloat(document.getElementById("setGoalWeight").value);
+        const height = parseFloat(document.getElementById("setHeight").value);
+
+        set(ref(db, 'healthy_diary/settings'), {
+            startWeight,
+            goalWeight,
+            height,
+            graphType: settings.graphType || 'line-smooth'
+        });
+        alert("Configuration updated successfully!");
+    });
+
+    document.getElementById("graphType").addEventListener("change", (e) => {
+        const type = e.target.value;
+        settings.graphType = type;
+        renderChart();
+        set(ref(db, 'healthy_diary/settings/graphType'), type);
+    });
+
+    window.showSection = function(sectionId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    };
+
+    document.getElementById("entryDate").valueAsDate = new Date();
+</script>
+</body>
+</html>
