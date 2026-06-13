@@ -58,7 +58,7 @@
         .separator { color: var(--border); font-weight: normal; }
 
         /* Graph Area Controls */
-        .graph-controls { margin-bottom: 10px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+        .graph-controls { margin-bottom: 10px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
         select, input, button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 0.9rem; }
         button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         button:hover { opacity: 0.9; }
@@ -135,13 +135,19 @@
         </div>
         
         <div class="graph-controls">
+            <label for="chartViewMode">View By:</label>
+            <select id="chartViewMode">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly Average</option>
+            </select>
+            
             <label for="graphType">Graph Style:</label>
             <select id="graphType">
+                <option value="bar">Bar Chart</option>
                 <option value="area-gradient">Area Chart (Gradient)</option>
                 <option value="line-smooth">Smooth Line</option>
                 <option value="line-straight">Straight Line</option>
                 <option value="line-stepped">Stepped Line</option>
-                <option value="bar">Bar Chart</option>
             </select>
         </div>
         <div style="position: relative; width: 100%; height: 550px;">
@@ -211,12 +217,14 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let settings = { startWeight: 120, goalWeight: 90, height: 1.94, graphType: 'area-gradient' };
+    // Default graphType changed to 'bar'
+    let settings = { startWeight: 120, goalWeight: 90, height: 1.94, graphType: 'bar' };
     let entries = [];
     let chartInstance = null;
     let currentlyEditingId = null;
+    let currentViewMode = 'daily';
 
-const achievementList = [
+    const achievementList = [
         { title: "Jumping Spider", target: 0.1, emoji: "🕷️" },
         { title: "Budgie", target: 0.2, emoji: "🦜" },
         { title: "Megaraptor Claw", target: 0.3, emoji: "🦖" },
@@ -299,6 +307,15 @@ const achievementList = [
         { title: "Capybara", target: 50.0, emoji: "🦦" }
     ];
 
+    // Helper Function: Get Monday of the week for grouping
+    function getWeekStart(dateStr) {
+        const d = new Date(dateStr);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d.setDate(diff));
+        return monday.toISOString().split('T')[0];
+    }
+
     onValue(ref(db, 'healthy_diary/settings'), (snapshot) => {
         if (snapshot.exists()) {
             settings = { ...settings, ...snapshot.data() };
@@ -306,7 +323,7 @@ const achievementList = [
         document.getElementById("setStartWeight").value = parseFloat(settings.startWeight);
         document.getElementById("setGoalWeight").value = parseFloat(settings.goalWeight);
         document.getElementById("setHeight").value = parseFloat(settings.height);
-        document.getElementById("graphType").value = settings.graphType || 'area-gradient';
+        document.getElementById("graphType").value = settings.graphType || 'bar';
         updateUI();
     });
 
@@ -427,12 +444,35 @@ const achievementList = [
     function renderChart() {
         const ctx = document.getElementById('weightChart').getContext('2d');
         
-        const labels = entries.length > 0 ? entries.map(e => e.date) : ["Start"];
-        const data = entries.length > 0 ? entries.map(e => parseFloat(e.weight)) : [parseFloat(settings.startWeight)];
+        let displayLabels = [];
+        let displayData = [];
+        
+        // Group data based on selected view mode
+        if (currentViewMode === 'weekly' && entries.length > 0) {
+            const weeklyData = {};
+            entries.forEach(e => {
+                const weekStart = getWeekStart(e.date);
+                if (!weeklyData[weekStart]) {
+                    weeklyData[weekStart] = { sum: 0, count: 0 };
+                }
+                weeklyData[weekStart].sum += parseFloat(e.weight);
+                weeklyData[weekStart].count += 1;
+            });
+            
+            Object.keys(weeklyData).sort().forEach(week => {
+                displayLabels.push("Week: " + week);
+                const avgWeight = weeklyData[week].sum / weeklyData[week].count;
+                displayData.push(avgWeight.toFixed(1));
+            });
+        } else {
+            // Daily view
+            displayLabels = entries.length > 0 ? entries.map(e => e.date) : ["Start"];
+            displayData = entries.length > 0 ? entries.map(e => parseFloat(e.weight)) : [parseFloat(settings.startWeight)];
+        }
         
         const strictGoalWeight = parseFloat(settings.goalWeight);
         const strictStartWeight = parseFloat(settings.startWeight);
-        const goalData = Array(labels.length).fill(strictGoalWeight);
+        const goalData = Array(displayLabels.length).fill(strictGoalWeight);
 
         let chartType = 'line';
         let tension = 0.3;
@@ -464,11 +504,11 @@ const achievementList = [
         chartInstance = new Chart(ctx, {
             type: chartType,
             data: {
-                labels: labels,
+                labels: displayLabels,
                 datasets: [
                     {
-                        label: 'Weight Track (kg)',
-                        data: data,
+                        label: currentViewMode === 'weekly' ? 'Weekly Avg Weight (kg)' : 'Weight Track (kg)',
+                        data: displayData,
                         borderColor: '#3b82f6',
                         backgroundColor: bgGradient,
                         borderWidth: 3,
@@ -498,8 +538,8 @@ const achievementList = [
                 maintainAspectRatio: false,
                 scales: {
                     y: {
-                        min: Math.min(strictGoalWeight, ...data) - 3,
-                        max: Math.max(strictStartWeight, ...data) + 3
+                        min: Math.min(strictGoalWeight, ...displayData) - 3,
+                        max: Math.max(strictStartWeight, ...displayData) + 3
                     }
                 }
             }
@@ -510,10 +550,16 @@ const achievementList = [
         const container = document.getElementById("achievementsContainer");
         container.innerHTML = "";
         
-        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : parseFloat(settings.startWeight);
-        const totalLost = parseFloat(settings.startWeight) - currentWeight;
+        const startWeight = parseFloat(settings.startWeight);
+        const goalWeight = parseFloat(settings.goalWeight);
+        const maxWeightToLose = startWeight - goalWeight;
+        
+        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : startWeight;
+        const totalLost = startWeight - currentWeight;
 
-        const sorted = [...achievementList].sort((a, b) => a.target - b.target);
+        // Filter achievements to only show those within the calculated drop range
+        const validAchievements = achievementList.filter(ach => ach.target <= maxWeightToLose);
+        const sorted = [...validAchievements].sort((a, b) => a.target - b.target);
 
         sorted.forEach(ach => {
             const isUnlocked = totalLost >= ach.target;
@@ -593,7 +639,7 @@ const achievementList = [
             startWeight,
             goalWeight,
             height,
-            graphType: settings.graphType || 'area-gradient'
+            graphType: settings.graphType || 'bar'
         });
         alert("Configuration updated successfully!");
     });
@@ -603,6 +649,12 @@ const achievementList = [
         settings.graphType = type;
         renderChart();
         set(ref(db, 'healthy_diary/settings/graphType'), type);
+    });
+
+    // View Mode Listener (Daily vs Weekly)
+    document.getElementById("chartViewMode").addEventListener("change", (e) => {
+        currentViewMode = e.target.value;
+        renderChart();
     });
 
     window.showSection = function(sectionId) {
