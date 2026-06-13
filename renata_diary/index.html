@@ -9,7 +9,7 @@
         :root {
             --bg: #f4f6f8;
             --surface: #ffffff;
-            --primary: #8b5cf6; /* Changed to Purple for visual distinction */
+            --primary: #8b5cf6;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
@@ -23,17 +23,14 @@
         
         .app-title { font-size: 1.5rem; font-weight: bold; color: var(--text); padding-bottom: 10px; border-bottom: 2px solid var(--border); margin-bottom: 15px;}
 
-        /* Navigation Tabs */
         .tabs { display: flex; gap: 10px; margin-bottom: 5px; }
         .tab-btn { padding: 10px 20px; border: none; background: var(--surface); cursor: pointer; border-radius: 8px; font-weight: bold; color: var(--text-light); transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .tab-btn.active { background: var(--primary); color: white; }
         
-        /* Sections */
         .section { display: none; background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .section.active { display: block; }
         h2 { margin-bottom: 15px; font-size: 1.4rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 8px; }
         
-        /* Weight Summary Row */
         .weight-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; text-align: center; }
         .summary-col { display: flex; flex-direction: column; align-items: center; padding: 10px; }
         .badge { color: white; font-weight: bold; padding: 4px 20px; border-radius: 6px; margin-bottom: 10px; width: 85%; font-size: 0.9rem;}
@@ -50,7 +47,6 @@
         .goal-col .badge { background-color: var(--success); }
         .goal-col .weight-val, .goal-col .sub-val { color: var(--success); }
 
-        /* Trend & Stats Single Row */
         .trend-stats-row { display: flex; justify-content: center; align-items: center; gap: 25px; flex-wrap: wrap; font-size: 1.05rem; color: var(--text-light); margin-bottom: 20px; font-weight: 500; background: var(--bg); padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
         .trend-stats-row .down { color: var(--success); font-weight: bold; }
         .trend-stats-row .same { color: var(--warning); font-weight: bold; }
@@ -59,7 +55,6 @@
         .mini-stat span { font-weight: bold; color: var(--text); }
         .separator { color: var(--border); font-weight: normal; }
 
-        /* Graph Area Controls */
         .graph-controls { margin-bottom: 10px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
         select, input, button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 0.9rem; }
         button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
@@ -67,7 +62,6 @@
         button.danger { background: #ef4444; padding: 5px 8px; font-size: 0.8rem; }
         button.edit { background: #f59e0b; padding: 5px 8px; font-size: 0.8rem; }
         
-        /* Achievements Frame */
         .achievements-frame { margin-top: 35px; padding: 25px; background: var(--surface); border-radius: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1); border: 1px solid var(--border); }
         .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
         .achievement-card { background: var(--bg); padding: 15px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 160px; border: 1px solid var(--border); transition: transform 0.2s; }
@@ -80,7 +74,6 @@
         .ach-title { font-size: 0.85rem; font-weight: bold; color: var(--text); margin-top: 5px; line-height: 1.2;}
         .ach-target { font-size: 0.75rem; color: var(--text-light); margin-top: 2px; }
 
-        /* Diary Entries Table */
         .entry-form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background: var(--bg); padding: 12px; border-radius: 8px; align-items: center;}
         .entry-form input { background: var(--surface); flex-grow: 1;}
         .entry-form input[type="date"] { flex-grow: 0; width: 140px;}
@@ -91,7 +84,6 @@
         tr:hover { background-color: #fafafa; }
         .actions { display: flex; gap: 5px; }
         
-        /* Settings Grid */
         .settings-form { display: grid; grid-template-columns: max-content 1fr; gap: 15px; max-width: 500px; align-items: center; }
         .settings-form label { font-weight: 600; color: var(--text); }
         .settings-form button { grid-column: span 2; margin-top: 10px; padding: 12px; }
@@ -185,8 +177,9 @@
     <div id="settings" class="section">
         <h2>App Settings</h2>
         <form id="settingsForm" class="settings-form">
-            <label for="setStartWeight">Start Weight (kg):</label>
+            <label for="setStartWeight">Fallback Start Weight (kg):</label>
             <input type="number" id="setStartWeight" step="0.1" required>
+            <small style="grid-column: span 2; color: #6b7280; margin-top: -10px; margin-bottom: 10px;">This is only used if you have no diary entries. Otherwise, the app uses your earliest recorded entry automatically.</small>
             
             <label for="setGoalWeight">Goal Weight (kg):</label>
             <input type="number" id="setGoalWeight" step="0.1" required>
@@ -221,7 +214,6 @@
     let chartInstance = null;
     let currentlyEditingId = null;
 
-    // Kept the same fun list! You can change targets or titles if needed.
     const achievementList = [
         { title: "Jumping Spider", target: 0.1, emoji: "🕷️" },
         { title: "Budgie", target: 0.2, emoji: "🦜" },
@@ -257,7 +249,6 @@
         { title: "20kg Milestone", target: 20.0, emoji: "🏆" }
     ];
 
-    // NOTE: All DB paths now point specifically to "healthy_diary/renata"
     onValue(ref(db, 'healthy_diary/renata/settings'), (snapshot) => {
         if (snapshot.exists()) {
             settings = { ...settings, ...snapshot.data() };
@@ -290,17 +281,18 @@
     }
 
     function renderStats() {
-        const startWeight = parseFloat(settings.startWeight);
+        // DYNAMIC START WEIGHT LOGIC ADDED HERE
+        const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
         const goalWeight = parseFloat(settings.goalWeight);
         const height = parseFloat(settings.height);
-        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : startWeight;
+        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : actualStartWeight;
 
-        const totalToLose = startWeight - goalWeight;
-        const totalLost = startWeight - currentWeight;
+        const totalToLose = actualStartWeight - goalWeight;
+        const totalLost = actualStartWeight - currentWeight;
         const leftToLose = currentWeight - goalWeight;
         const bmi = currentWeight / (height * height);
 
-        document.getElementById("sum-start-weight").innerText = `${startWeight.toFixed(1)}kg`;
+        document.getElementById("sum-start-weight").innerText = `${actualStartWeight.toFixed(1)}kg`;
         document.getElementById("sum-total-lose").innerText = `${totalToLose.toFixed(1)}kg to lose`;
         document.getElementById("sum-current-weight").innerText = `${currentWeight.toFixed(1)}kg`;
         document.getElementById("sum-current-lost").innerText = `${totalLost.toFixed(1)}kg lost`;
@@ -312,7 +304,7 @@
         let downDays = 0, sameDays = 0, upDays = 0;
 
         for (let i = 0; i < entries.length; i++) {
-            let prevWeight = i === 0 ? startWeight : parseFloat(entries[i-1].weight);
+            let prevWeight = i === 0 ? actualStartWeight : parseFloat(entries[i-1].weight);
             let currWeight = parseFloat(entries[i].weight);
             if (currWeight < prevWeight) downDays++;
             else if (currWeight === prevWeight) sameDays++;
@@ -326,7 +318,7 @@
             
             if (daysPassed === 0) daysPassed = 1; 
             
-            const totalLossInPeriod = entries[0].weight - currentWeight;
+            const totalLossInPeriod = actualStartWeight - currentWeight;
             const lossPerDay = totalLossInPeriod / daysPassed;
             
             lossPerDayText = lossPerDay.toFixed(1);
@@ -356,6 +348,9 @@
         const tbody = document.getElementById("entriesTableBody");
         tbody.innerHTML = "";
         
+        // Dynamic start weight needed for the very first entry's trend arrow
+        const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
+
         [...entries].reverse().forEach((entry, index, arr) => {
             const nextInReversed = arr[index + 1]; 
             let trendEmoji = "⏺️";
@@ -364,8 +359,8 @@
                 if (entry.weight < nextInReversed.weight) trendEmoji = "🔽";
                 else if (entry.weight > nextInReversed.weight) trendEmoji = "🔼";
             } else {
-                if (entry.weight < settings.startWeight) trendEmoji = "🔽";
-                else if (entry.weight > settings.startWeight) trendEmoji = "🔼";
+                if (entry.weight < actualStartWeight) trendEmoji = "🔽";
+                else if (entry.weight > actualStartWeight) trendEmoji = "🔼";
             }
 
             const tr = document.createElement("tr");
@@ -386,21 +381,22 @@
     function renderChart() {
         const ctx = document.getElementById('weightChart').getContext('2d');
         
+        const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
+
         const labels = entries.length > 0 ? entries.map(e => e.date) : ["Start"];
-        const data = entries.length > 0 ? entries.map(e => parseFloat(e.weight)) : [parseFloat(settings.startWeight)];
+        const data = entries.length > 0 ? entries.map(e => parseFloat(e.weight)) : [actualStartWeight];
         
         const strictGoalWeight = parseFloat(settings.goalWeight);
-        const strictStartWeight = parseFloat(settings.startWeight);
         const goalData = Array(labels.length).fill(strictGoalWeight);
 
         let chartType = 'line';
         let tension = 0.3;
         let isFilled = false;
-        let bgGradient = 'rgba(139, 92, 246, 0.05)'; /* Purple tint */
+        let bgGradient = 'rgba(139, 92, 246, 0.05)'; 
         let isStepped = false;
 
         let gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); /* Purple Gradient */
+        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); 
         gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
 
         if (settings.graphType === 'area-gradient') {
@@ -427,7 +423,7 @@
                     {
                         label: 'Weight Track (kg)',
                         data: data,
-                        borderColor: '#8b5cf6', /* Purple Line */
+                        borderColor: '#8b5cf6', 
                         backgroundColor: bgGradient,
                         borderWidth: 3,
                         tension: tension,
@@ -457,7 +453,7 @@
                 scales: {
                     y: {
                         min: Math.min(strictGoalWeight, ...data) - 3,
-                        max: Math.max(strictStartWeight, ...data) + 3
+                        max: Math.max(actualStartWeight, ...data) + 3
                     }
                 }
             }
@@ -468,8 +464,9 @@
         const container = document.getElementById("achievementsContainer");
         container.innerHTML = "";
         
-        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : parseFloat(settings.startWeight);
-        const totalLost = parseFloat(settings.startWeight) - currentWeight;
+        const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
+        const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : actualStartWeight;
+        const totalLost = actualStartWeight - currentWeight;
 
         const sorted = [...achievementList].sort((a, b) => a.target - b.target);
 
