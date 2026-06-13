@@ -55,7 +55,7 @@
         .mini-stat span { font-weight: bold; color: var(--text); }
         .separator { color: var(--border); font-weight: normal; }
 
-        .graph-controls { margin-bottom: 10px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+        .graph-controls { margin-bottom: 10px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
         select, input, button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 0.9rem; }
         button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         button:hover { opacity: 0.9; }
@@ -132,13 +132,19 @@
         </div>
         
         <div class="graph-controls">
-            <label for="graphType">Graph Style:</label>
+            <label for="chartView">Time Range:</label>
+            <select id="chartView">
+                <option value="daily">Daily View</option>
+                <option value="weekly">Weekly Average View</option>
+            </select>
+
+            <label for="graphType" style="margin-left: 10px;">Graph Style:</label>
             <select id="graphType">
+                <option value="bar">Bar Chart</option>
                 <option value="area-gradient">Area Chart (Gradient)</option>
                 <option value="line-smooth">Smooth Line</option>
                 <option value="line-straight">Straight Line</option>
                 <option value="line-stepped">Stepped Line</option>
-                <option value="bar">Bar Chart</option>
             </select>
         </div>
         <div style="position: relative; width: 100%; height: 550px;">
@@ -209,12 +215,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let settings = { startWeight: 80, goalWeight: 65, height: 1.65, graphType: 'area-gradient' };
+    let settings = { startWeight: 80, goalWeight: 65, height: 1.65, graphType: 'bar', chartView: 'daily' };
     let entries = [];
     let chartInstance = null;
     let currentlyEditingId = null;
 
-const achievementList = [
+    const achievementList = [
         { title: "Jumping Spider", target: 0.1, emoji: "🕷️" },
         { title: "Budgie", target: 0.2, emoji: "🦜" },
         { title: "Megaraptor Claw", target: 0.3, emoji: "🦖" },
@@ -304,7 +310,8 @@ const achievementList = [
         document.getElementById("setStartWeight").value = parseFloat(settings.startWeight);
         document.getElementById("setGoalWeight").value = parseFloat(settings.goalWeight);
         document.getElementById("setHeight").value = parseFloat(settings.height);
-        document.getElementById("graphType").value = settings.graphType || 'area-gradient';
+        document.getElementById("graphType").value = settings.graphType || 'bar';
+        document.getElementById("chartView").value = settings.chartView || 'daily';
         updateUI();
     });
 
@@ -329,7 +336,6 @@ const achievementList = [
     }
 
     function renderStats() {
-        // DYNAMIC START WEIGHT LOGIC ADDED HERE
         const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
         const goalWeight = parseFloat(settings.goalWeight);
         const height = parseFloat(settings.height);
@@ -396,7 +402,6 @@ const achievementList = [
         const tbody = document.getElementById("entriesTableBody");
         tbody.innerHTML = "";
         
-        // Dynamic start weight needed for the very first entry's trend arrow
         const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
 
         [...entries].reverse().forEach((entry, index, arr) => {
@@ -426,39 +431,73 @@ const achievementList = [
         });
     }
 
+    // Helper to get the Monday of a given date for weekly grouping
+    function getWeekStart(dateStr) {
+        const d = new Date(dateStr);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const weekStart = new Date(d.setDate(diff));
+        return weekStart.toISOString().split('T')[0];
+    }
+
     function renderChart() {
         const ctx = document.getElementById('weightChart').getContext('2d');
-        
         const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
 
-        const labels = entries.length > 0 ? entries.map(e => e.date) : ["Start"];
-        const data = entries.length > 0 ? entries.map(e => parseFloat(e.weight)) : [actualStartWeight];
+        let labels = [];
+        let data = [];
+
+        if (settings.chartView === 'weekly' && entries.length > 0) {
+            // Group by Week
+            const weeks = {};
+            entries.forEach(e => {
+                const ws = getWeekStart(e.date);
+                if (!weeks[ws]) weeks[ws] = [];
+                weeks[ws].push(parseFloat(e.weight));
+            });
+            for (const [ws, weights] of Object.entries(weeks)) {
+                labels.push(ws + " (Week)");
+                const avg = weights.reduce((a, b) => a + b, 0) / weights.length;
+                data.push(avg);
+            }
+        } else {
+            // Daily View
+            labels = entries.length > 0 ? entries.map(e => e.date) : ["Start"];
+            data = entries.length > 0 ? entries.map(e => parseFloat(e.weight)) : [actualStartWeight];
+        }
         
         const strictGoalWeight = parseFloat(settings.goalWeight);
         const goalData = Array(labels.length).fill(strictGoalWeight);
 
-        let chartType = 'line';
+        let chartType = 'bar';
         let tension = 0.3;
         let isFilled = false;
-        let bgGradient = 'rgba(139, 92, 246, 0.05)'; 
+        let bgGradient = 'rgba(139, 92, 246, 0.7)'; 
         let isStepped = false;
 
         let gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); 
         gradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
 
-        if (settings.graphType === 'area-gradient') {
+        const userGraphType = settings.graphType || 'bar';
+
+        if (userGraphType === 'area-gradient') {
+            chartType = 'line';
             isFilled = true;
             tension = 0.4;
             bgGradient = gradient;
-        } else if (settings.graphType === 'line-straight') {
+        } else if (userGraphType === 'line-smooth') {
+            chartType = 'line';
+            bgGradient = 'rgba(139, 92, 246, 0.05)';
+        } else if (userGraphType === 'line-straight') {
+            chartType = 'line';
             tension = 0;
-        } else if (settings.graphType === 'line-stepped') {
+            bgGradient = 'rgba(139, 92, 246, 0.05)';
+        } else if (userGraphType === 'line-stepped') {
+            chartType = 'line';
             tension = 0;
             isStepped = true;
-        } else if (settings.graphType === 'bar') {
-            chartType = 'bar';
-            bgGradient = 'rgba(139, 92, 246, 0.7)';
+            bgGradient = 'rgba(139, 92, 246, 0.05)';
         }
 
         if (chartInstance) chartInstance.destroy();
@@ -469,7 +508,7 @@ const achievementList = [
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Weight Track (kg)',
+                        label: settings.chartView === 'weekly' ? 'Weekly Average (kg)' : 'Weight Track (kg)',
                         data: data,
                         borderColor: '#8b5cf6', 
                         backgroundColor: bgGradient,
@@ -515,8 +554,11 @@ const achievementList = [
         const actualStartWeight = entries.length > 0 ? parseFloat(entries[0].weight) : parseFloat(settings.startWeight);
         const currentWeight = entries.length > 0 ? parseFloat(entries[entries.length - 1].weight) : actualStartWeight;
         const totalLost = actualStartWeight - currentWeight;
+        const totalToLose = actualStartWeight - parseFloat(settings.goalWeight);
 
-        const sorted = [...achievementList].sort((a, b) => a.target - b.target);
+        // Filter out achievements that exceed the total intended weight loss
+        const applicableAchievements = achievementList.filter(ach => ach.target <= totalToLose);
+        const sorted = [...applicableAchievements].sort((a, b) => a.target - b.target);
 
         sorted.forEach(ach => {
             const isUnlocked = totalLost >= ach.target;
@@ -596,7 +638,8 @@ const achievementList = [
             startWeight,
             goalWeight,
             height,
-            graphType: settings.graphType || 'area-gradient'
+            graphType: settings.graphType || 'bar',
+            chartView: settings.chartView || 'daily'
         });
         alert("Configuration updated successfully!");
     });
@@ -606,6 +649,13 @@ const achievementList = [
         settings.graphType = type;
         renderChart();
         set(ref(db, 'healthy_diary/renata/settings/graphType'), type);
+    });
+
+    document.getElementById("chartView").addEventListener("change", (e) => {
+        const view = e.target.value;
+        settings.chartView = view;
+        renderChart();
+        set(ref(db, 'healthy_diary/renata/settings/chartView'), view);
     });
 
     window.showSection = function(sectionId) {
