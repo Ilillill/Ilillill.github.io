@@ -19,50 +19,53 @@
         body { background-color: var(--bg); color: var(--text); padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 1fr; }
         
-        /* Navigation / Tabs */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; border: none; background: var(--surface); cursor: pointer; border-radius: 8px; font-weight: bold; color: var(--text-light); transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        /* Navigation Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 5px; }
+        .tab-btn { padding: 12px 24px; border: none; background: var(--surface); cursor: pointer; border-radius: 8px; font-weight: bold; color: var(--text-light); transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .tab-btn.active { background: var(--primary); color: white; }
         
         /* Sections */
-        .section { display: none; background: var(--surface); padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .section { display: none; background: var(--surface); padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .section.active { display: block; }
-        h2 { margin-bottom: 15px; font-size: 1.5rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        h2 { margin-bottom: 20px; font-size: 1.5rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
         
         /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: var(--bg); padding: 15px; border-radius: 8px; text-align: center; }
-        .stat-card h3 { font-size: 0.9rem; color: var(--text-light); margin-bottom: 5px; }
-        .stat-card p { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--bg); padding: 20px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .stat-card h3 { font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card p { font-size: 1.75rem; font-weight: bold; color: var(--text); }
         
-        /* Graph Area */
-        .graph-controls { margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center; gap: 10px;}
-        select, input, button { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
-        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        /* Graph Area Controls */
+        .graph-controls { margin-bottom: 15px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+        select, input, button { padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 0.95rem; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         button:hover { opacity: 0.9; }
-        button.danger { background: #ef4444; }
+        button.danger { background: #ef4444; padding: 6px 10px; font-size: 0.85rem; }
         
-        /* Entries Table */
-        .entry-form { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { background: var(--bg); }
+        /* Diary Entries Table */
+        .entry-form { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; background: var(--bg); padding: 15px; border-radius: 8px; }
+        .entry-form input { background: var(--surface); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--bg); font-weight: bold; color: var(--text-light); }
+        tr:hover { background-color: #fafafa; }
         
-        /* Achievements */
-        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .achievement-card { background: var(--bg); padding: 15px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 160px; }
-        .emoji { font-size: 3rem; margin-bottom: 10px; filter: grayscale(100%); opacity: 0.5; transition: 0.3s; }
-        .achievement-card.unlocked .emoji { filter: grayscale(0%); opacity: 1; }
-        .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 10px; }
-        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.5s ease-out; }
-        .ach-title { font-size: 0.85rem; font-weight: bold; color: var(--text); }
-        .ach-target { font-size: 0.75rem; color: var(--text-light); }
+        /* Achievements Dynamic Layout */
+        .achievements-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+        .achievement-card { background: var(--bg); padding: 20px; border-radius: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 180px; border: 1px solid var(--border); transition: transform 0.2s; }
+        .achievement-card:hover { transform: translateY(-2px); }
+        .emoji { font-size: 3.2rem; margin-bottom: 10px; filter: grayscale(100%); opacity: 0.3; transition: all 0.4s ease; }
+        .achievement-card.unlocked { background: #f0fdf4; border-color: #bbf7d0; }
+        .achievement-card.unlocked .emoji { filter: grayscale(0%); opacity: 1; transform: scale(1.05); }
+        .progress-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 12px; }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .ach-title { font-size: 0.9rem; font-weight: bold; color: var(--text); margin-top: 5px; }
+        .ach-target { font-size: 0.8rem; color: var(--text-light); margin-top: 2px; }
         
-        /* Settings Form */
-        .settings-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 400px; }
-        .settings-form label { font-size: 0.9rem; font-weight: bold; }
-        .settings-form input { width: 100%; }
-        .settings-form button { grid-column: span 2; }
+        /* Settings Grid Layout */
+        .settings-form { display: grid; grid-template-columns: max-content 1fr; gap: 20px; max-width: 500px; align-items: center; }
+        .settings-form label { font-weight: 600; color: var(--text); }
+        .settings-form button { grid-column: span 2; margin-top: 10px; padding: 12px; }
     </style>
 </head>
 <body>
@@ -79,9 +82,9 @@
         <h2>Overview</h2>
         <div class="stats-grid">
             <div class="stat-card"><h3>Current Weight</h3><p id="stat-current">-- kg</p></div>
-            <div class="stat-card"><h3>Total Lost</h3><p id="stat-lost">-- kg</p></div>
+            <div class="stat-card"><h3>Total Progress</h3><p id="stat-lost">-- kg</p></div>
             <div class="stat-card"><h3>Current BMI</h3><p id="stat-bmi">--</p></div>
-            <div class="stat-card"><h3>Est. Days Left</h3><p id="stat-eta">--</p></div>
+            <div class="stat-card"><h3>Est. Days to Goal</h3><p id="stat-eta">--</p></div>
         </div>
         
         <div class="graph-controls">
@@ -92,7 +95,9 @@
                 <option value="bar">Bar Chart</option>
             </select>
         </div>
-        <canvas id="weightChart" height="100"></canvas>
+        <div style="position: relative; width: 100%; height: 450px;">
+            <canvas id="weightChart"></canvas>
+        </div>
     </div>
 
     <div id="entries" class="section">
@@ -100,7 +105,7 @@
         <form id="entryForm" class="entry-form">
             <input type="date" id="entryDate" required>
             <input type="number" id="entryWeight" step="0.1" placeholder="Weight (kg)" required>
-            <input type="text" id="entryNote" placeholder="Notes (optional)" style="flex-grow: 1;">
+            <input type="text" id="entryNote" placeholder="Notes (optional / how did today go?)">
             <button type="submit">Save Entry</button>
         </form>
         
@@ -126,86 +131,88 @@
     <div id="settings" class="section">
         <h2>App Settings</h2>
         <form id="settingsForm" class="settings-form">
-            <label>Start Weight (kg)</label>
+            <label for="setStartWeight">Start Weight (kg):</label>
             <input type="number" id="setStartWeight" step="0.1" required>
             
-            <label>Goal Weight (kg)</label>
+            <label for="setGoalWeight">Goal Weight (kg):</label>
             <input type="number" id="setGoalWeight" step="0.1" required>
             
-            <label>Height (meters)</label>
+            <label for="setHeight">Height (m):</label>
             <input type="number" id="setHeight" step="0.01" required>
             
-            <button type="submit">Save Settings</button>
+            <button type="submit">Save Configuration</button>
         </form>
     </div>
 </div>
 
 <script type="module">
-    // 1. IMPORT FIREBASE (V9 Modular)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // 2. YOUR FIREBASE CONFIGURATION (Replace with your actual config)
+    // Integrated directly with your project credentials
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
+        authDomain: "tasks-de4d9.firebaseapp.com",
+        databaseURL: "https://tasks-de4d9-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "tasks-de4d9",
+        storageBucket: "tasks-de4d9.firebasestorage.app",
+        messagingSenderId: "908733856196",
+        appId: "1:908733856196:web:b8d268a692a0e079be4c91"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
 
-    // App State
-    let settings = { startWeight: 120, goalWeight: 90, height: 1.92, graphType: 'line-smooth' };
+    // App Defaults
+    let settings = { startWeight: 120, goalWeight: 95, height: 1.92, graphType: 'line-smooth' };
     let entries = [];
     let chartInstance = null;
 
-    // Achievements Config
+    // Custom List of Funny & Milestone Achievements
     const achievementList = [
         { title: "A Duck!", target: 1.5, emoji: "🦆" },
-        { title: "Avg Baby", target: 3.3, emoji: "👶" },
-        { title: "Bowling Ball", target: 7.2, emoji: "🎳" },
+        { title: "Human Brain", target: 1.4, emoji: "🧠" },
+        { title: "Newborn Baby", target: 3.5, emoji: "👶" },
+        { title: "Cat", target: 4.5, emoji: "🐈" },
+        { title: "5kg Milestone", target: 5.0, emoji: "⭐" },
+        { title: "Bowling Ball", target: 7.0, emoji: "🎳" },
+        { title: "10kg Milestone", target: 10.0, emoji: "🌟" },
         { title: "5 Bricks", target: 11.0, emoji: "🧱" },
         { title: "Microwave", target: 15.0, emoji: "🍿" },
+        { title: "15kg Milestone", target: 15.0, emoji: "✨" },
         { title: "100 Hamsters", target: 16.0, emoji: "🐹" },
-        { title: "Medium Dog", target: 20.0, emoji: "🐕" },
-        { title: "Sack of Potatoes", target: 22.0, emoji: "🥔" },
-        { title: "5kg Milestone", target: 5.0, emoji: "🌟" },
-        { title: "10kg Milestone", target: 10.0, emoji: "🌟" },
-        { title: "15kg Milestone", target: 15.0, emoji: "🌟" },
-        { title: "20kg Milestone", target: 20.0, emoji: "🌟" },
-        { title: "25kg Milestone", target: 25.0, emoji: "🌟" }
+        { title: "Car Tire", target: 11.0, emoji: "🛞" },
+        { title: "20kg Milestone", target: 20.0, emoji: "🏆" },
+        { title: "Medium Dog", target: 23.0, emoji: "🐕" },
+        { title: "25kg Milestone", target: 25.0, emoji: "👑" }
     ];
 
-    // --- Core Functions ---
-
-    async function loadData() {
-        // Load Settings
-        const settingsSnap = await getDoc(doc(db, "user", "settings"));
-        if (settingsSnap.exists()) {
-            settings = { ...settings, ...settingsSnap.data() };
+    // Listen for Settings Updates
+    onValue(ref(db, 'healthy_diary/settings'), (snapshot) => {
+        if (snapshot.exists()) {
+            settings = { ...settings, ...snapshot.data() };
         }
-        
-        // Populate settings form
         document.getElementById("setStartWeight").value = settings.startWeight;
         document.getElementById("setGoalWeight").value = settings.goalWeight;
         document.getElementById("setHeight").value = settings.height;
         document.getElementById("graphType").value = settings.graphType || 'line-smooth';
-
-        // Load Entries
-        const q = query(collection(db, "entries"), orderBy("date", "asc"));
-        const querySnapshot = await getDocs(q);
-        entries = [];
-        querySnapshot.forEach((doc) => {
-            entries.push({ id: doc.id, ...doc.data() });
-        });
-
         updateUI();
-    }
+    });
+
+    // Listen for Diary Entries
+    onValue(ref(db, 'healthy_diary/entries'), (snapshot) => {
+        entries = [];
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            entries = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            }));
+            // Keep chronologically ordered for processing and graphs
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
+        updateUI();
+    });
 
     function updateUI() {
         renderTable();
@@ -214,30 +221,38 @@
         renderAchievements();
     }
 
-    // --- Render Functions ---
-
     function renderStats() {
-        if (entries.length === 0) return;
+        if (entries.length === 0) {
+            document.getElementById("stat-current").innerText = `${settings.startWeight} kg`;
+            document.getElementById("stat-lost").innerText = "0.0 kg";
+            const initialBmi = settings.startWeight / (settings.height * settings.height);
+            document.getElementById("stat-bmi").innerText = initialBmi.toFixed(1);
+            document.getElementById("stat-eta").innerText = "Add data first";
+            return;
+        }
         
         const currentWeight = entries[entries.length - 1].weight;
-        const startWeight = settings.startWeight;
-        const weightLost = startWeight - currentWeight;
+        const weightLost = settings.startWeight - currentWeight;
         const bmi = currentWeight / (settings.height * settings.height);
 
-        // Calculate ETA
-        let etaText = "Need more data";
-        if (entries.length > 1 && weightLost > 0) {
+        let etaText = "Need more entries";
+        // Calculate ETA only if we have at least 2 entries and some weight progress
+        if (entries.length >= 2 && weightLost > 0) {
             const firstDate = new Date(entries[0].date);
             const lastDate = new Date(entries[entries.length - 1].date);
             const daysPassed = (lastDate - firstDate) / (1000 * 60 * 60 * 24) || 1;
-            const lossPerDay = weightLost / daysPassed;
-            const weightLeft = currentWeight - settings.goalWeight;
             
-            if (weightLeft > 0 && lossPerDay > 0) {
-                const daysLeft = Math.ceil(weightLeft / lossPerDay);
+            const totalLossInPeriod = entries[0].weight - currentWeight;
+            const lossPerDay = totalLossInPeriod / daysPassed;
+            const weightLeftToGoal = currentWeight - settings.goalWeight;
+            
+            if (weightLeftToGoal > 0 && lossPerDay > 0) {
+                const daysLeft = Math.ceil(weightLeftToGoal / lossPerDay);
                 etaText = `${daysLeft} days`;
-            } else if (weightLeft <= 0) {
-                etaText = "Goal Reached! 🎉";
+            } else if (weightLeftToGoal <= 0) {
+                etaText = "Goal Achieved! 🎉";
+            } else {
+                etaText = "Weight stable or gaining";
             }
         }
 
@@ -251,22 +266,25 @@
         const tbody = document.getElementById("entriesTableBody");
         tbody.innerHTML = "";
         
-        // Render in reverse chronological order
+        // Display entries descending (newest first)
         [...entries].reverse().forEach((entry, index, arr) => {
-            const prevEntry = arr[index + 1]; // Next in reversed array is the previous day
+            const nextInReversed = arr[index + 1]; // This is chronologically the day before
             let trendEmoji = "😐";
-            if (prevEntry) {
-                if (entry.weight < prevEntry.weight) trendEmoji = "🙂";
-                if (entry.weight > prevEntry.weight) trendEmoji = "😟";
+            
+            if (nextInReversed) {
+                if (entry.weight < nextInReversed.weight) trendEmoji = "🙂";
+                if (entry.weight > nextInReversed.weight) trendEmoji = "😟";
             } else if (entry.weight < settings.startWeight) {
                 trendEmoji = "🙂";
+            } else if (entry.weight > settings.startWeight) {
+                trendEmoji = "😟";
             }
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td>${entry.date}</td>
-                <td><strong>${entry.weight}</strong></td>
-                <td>${trendEmoji}</td>
+                <td><strong>${entry.weight.toFixed(1)} kg</strong></td>
+                <td style="font-size: 1.2rem;">${trendEmoji}</td>
                 <td>${entry.note || ""}</td>
                 <td><button class="danger" onclick="deleteEntry('${entry.id}')">❌</button></td>
             `;
@@ -275,17 +293,15 @@
     }
 
     function renderChart() {
-        if (entries.length === 0) return;
-
         const ctx = document.getElementById('weightChart').getContext('2d');
-        const labels = entries.map(e => e.date.slice(5)); // Just MM-DD
-        const data = entries.map(e => e.weight);
         
-        // Add goal line data
-        const goalData = Array(entries.length).fill(settings.goalWeight);
+        // If empty, show theoretical point
+        const labels = entries.length > 0 ? entries.map(e => e.date) : ["Start"];
+        const data = entries.length > 0 ? entries.map(e => e.weight) : [settings.startWeight];
+        const goalData = Array(labels.length).fill(settings.goalWeight);
 
         let type = 'line';
-        let tension = 0.4; // Smooth by default
+        let tension = 0.3;
 
         if (settings.graphType === 'line-straight') tension = 0;
         if (settings.graphType === 'bar') type = 'bar';
@@ -298,32 +314,34 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Weight (kg)',
+                        label: 'Weight Track (kg)',
                         data: data,
                         borderColor: '#3b82f6',
-                        backgroundColor: type === 'bar' ? '#3b82f6' : 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
+                        backgroundColor: type === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.05)',
+                        borderWidth: 3,
                         tension: tension,
-                        fill: type === 'line'
+                        fill: type === 'line',
+                        pointRadius: 4
                     },
                     {
-                        label: 'Goal',
+                        label: 'Target Goal Line',
                         data: goalData,
                         borderColor: '#10b981',
                         borderWidth: 2,
-                        borderDash: [5, 5],
+                        borderDash: [6, 6],
                         type: 'line',
                         pointRadius: 0,
-                        tension: 0
+                        fill: false
                     }
                 ]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     y: {
-                        min: settings.goalWeight - 5,
-                        max: settings.startWeight + 2
+                        min: Math.min(settings.goalWeight, ...data) - 3,
+                        max: Math.max(settings.startWeight, ...data) + 3
                     }
                 }
             }
@@ -337,76 +355,75 @@
         const currentWeight = entries.length > 0 ? entries[entries.length - 1].weight : settings.startWeight;
         const totalLost = settings.startWeight - currentWeight;
 
-        // Sort achievements by target weight
-        const sortedList = [...achievementList].sort((a, b) => a.target - b.target);
+        // Sort items by scale
+        const sorted = [...achievementList].sort((a, b) => a.target - b.target);
 
-        sortedList.forEach(ach => {
-            const unlocked = totalLost >= ach.target;
+        sorted.forEach(ach => {
+            const isUnlocked = totalLost >= ach.target;
             const percent = Math.min((totalLost / ach.target) * 100, 100);
             
-            const div = document.createElement("div");
-            div.className = `achievement-card ${unlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `
+            const card = document.createElement("div");
+            card.className = `achievement-card ${isUnlocked ? 'unlocked' : ''}`;
+            card.innerHTML = `
                 <div class="emoji">${ach.emoji}</div>
                 <div class="ach-title">${ach.title}</div>
-                <div class="ach-target">${ach.target}kg lost</div>
+                <div class="ach-target">${ach.target.toFixed(1)}kg lost</div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${percent}%"></div>
+                    <div class="progress-fill" style="width: ${isUnlocked ? 100 : percent}%"></div>
                 </div>
             `;
-            container.appendChild(div);
+            container.appendChild(card);
         });
     }
 
-    // --- Event Listeners & Firebase Interactions ---
-
-    // Expose delete to global scope for inline HTML onclick
-    window.deleteEntry = async function(id) {
-        if(confirm("Delete this entry?")) {
-            await deleteDoc(doc(db, "entries", id));
-            loadData();
+    // Interactions
+    window.deleteEntry = function(id) {
+        if (confirm("Are you sure you want to permanently delete this entry?")) {
+            remove(ref(db, `healthy_diary/entries/${id}`));
         }
     };
 
-    document.getElementById("entryForm").addEventListener("submit", async (e) => {
+    document.getElementById("entryForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const date = document.getElementById("entryDate").value;
         const weight = parseFloat(document.getElementById("entryWeight").value);
         const note = document.getElementById("entryNote").value;
 
-        // Check if date exists (simple overwrite logic could be added, but for now we block duplicates)
-        if (entries.some(entry => entry.date === date)) {
-            alert("An entry for this date already exists!");
+        // Prevent identical date duplication conflicts
+        const exists = entries.some(el => el.date === date);
+        if (exists) {
+            alert("An entry for this date already exists. Delete the old one first if updating!");
             return;
         }
 
-        await addDoc(collection(db, "entries"), { date, weight, note });
+        const entriesRef = ref(db, 'healthy_diary/entries');
+        const newEntryRef = push(entriesRef);
+        set(newEntryRef, { date, weight, note });
+
         document.getElementById("entryForm").reset();
-        
-        // Auto-set date to today for convenience
         document.getElementById("entryDate").valueAsDate = new Date();
-        loadData();
     });
 
-    document.getElementById("settingsForm").addEventListener("submit", async (e) => {
+    document.getElementById("settingsForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const startWeight = parseFloat(document.getElementById("setStartWeight").value);
         const goalWeight = parseFloat(document.getElementById("setGoalWeight").value);
         const height = parseFloat(document.getElementById("setHeight").value);
 
-        settings = { ...settings, startWeight, goalWeight, height };
-        await setDoc(doc(db, "user", "settings"), settings, { merge: true });
-        updateUI();
-        alert("Settings saved!");
+        set(ref(db, 'healthy_diary/settings'), {
+            startWeight,
+            goalWeight,
+            height,
+            graphType: settings.graphType || 'line-smooth'
+        });
+        alert("Configuration updated successfully!");
     });
 
-    document.getElementById("graphType").addEventListener("change", async (e) => {
-        settings.graphType = e.target.value;
-        await setDoc(doc(db, "user", "settings"), { graphType: settings.graphType }, { merge: true });
-        renderChart();
+    document.getElementById("graphType").addEventListener("change", (e) => {
+        const type = e.target.value;
+        set(ref(db, 'healthy_diary/settings/graphType'), type);
     });
 
-    // Simple Tab Switching logic exposed to global scope
     window.showSection = function(sectionId) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -414,10 +431,8 @@
         event.currentTarget.classList.add('active');
     };
 
-    // Init App
+    // Auto-populate date field with today's date
     document.getElementById("entryDate").valueAsDate = new Date();
-    loadData();
-
 </script>
 </body>
 </html>
