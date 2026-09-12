@@ -6,7 +6,6 @@
     <title>Flashcards</title>
     <link rel="icon" type="image/x-icon" href="/favicons_256/fav18.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -271,22 +270,6 @@
             gap: 5px;
         }
 
-        /* Card Mini Progress Bar */
-        .card-progress-bg {
-            width: 100%;
-            height: 6px;
-            background-color: var(--border);
-            border-radius: 3px;
-            margin-top: 5px;
-            overflow: hidden;
-        }
-        .card-progress-fill {
-            height: 100%;
-            background-color: var(--success);
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
-
         .set-category-select {
             padding: 6px 10px;
             border-radius: 6px;
@@ -404,7 +387,7 @@
 
         /* --- End Screen --- */
         .results-card { background: var(--surface); border-radius: 16px; padding: 40px; text-align: center; border: 1px solid var(--border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
-        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; margin: 0 auto 20px; }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 800; margin: 0 auto 20px; }
 
         /* --- Stats Screen --- */
         .stats-grid {
@@ -436,17 +419,6 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 0.85rem;
-        }
-
-        .chart-container {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
         }
 
         /* --- Modals --- */
@@ -546,11 +518,6 @@
                     <div class="stat-label">Needs Review</div>
                 </div>
             </div>
-
-            <div class="chart-container">
-                <h3 style="margin-top: 0; color: var(--text-main); text-align: center;">Recent Set Scores (First Attempt Accuracy)</h3>
-                <canvas id="scoresChart"></canvas>
-            </div>
         </div>
     </div>
 
@@ -640,11 +607,8 @@
         </div>
         <div class="manage-container" style="display: flex; flex-direction: column; justify-content: center; flex: 1;">
             <div class="results-card">
-                <div class="score-circle" id="end-score">100%</div>
-                <h2 style="font-size: 2rem; margin-bottom: 10px;">Great Job!</h2>
-                <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 30px;">
-                    First attempt accuracy: <strong id="end-correct" style="color: var(--success);">0</strong> correctly out of <strong id="end-total">0</strong>.
-                </p>
+                <div class="score-circle"><i class="fa-solid fa-check"></i></div>
+                <h2 style="font-size: 2rem; margin-bottom: 30px;">Great Job!</h2>
                 
                 <div id="end-errors-section" style="display: none; background: var(--danger-bg); padding: 20px; border-radius: 12px; margin-bottom: 30px;">
                     <h3 style="color: #991b1b; margin-top: 0;"><i class="fa-solid fa-triangle-exclamation"></i> Words to Review: <span id="end-error-count">0</span></h3>
@@ -728,7 +692,6 @@
         let currentWords = [];
         let editingWordId = null;
         window.pendingNewSetName = ""; 
-        let chartInstance = null; 
 
         // Gameplay State
         let deck = [];
@@ -738,9 +701,6 @@
         let playingSetName = "";
         let playingSetId = null;
         let isPlayingFrench = false; // Tracks if the active play session is for a French deck
-        
-        let originalDeckSize = 0;
-        let firstTryCorrectCount = 0;
 
         // --- DOM Elements ---
         const inputField = document.getElementById('answer-input');
@@ -791,56 +751,15 @@
             
             let finishedCount = 0;
             let reviewCount = 0;
-            let setsWithData = [];
 
             sets.forEach(s => {
                 if(s.isFinished) finishedCount++;
                 if(s.needsReview) reviewCount++;
-                if(s.lastScore !== undefined && !s.isFinished) {
-                    setsWithData.push(s);
-                }
             });
 
             document.getElementById('stat-total-sets').innerText = sets.length;
             document.getElementById('stat-finished-sets').innerText = finishedCount;
             document.getElementById('stat-review-sets').innerText = reviewCount;
-
-            setsWithData.sort((a, b) => (b.lastReviewed || 0) - (a.lastReviewed || 0));
-            const topSets = setsWithData.slice(0, 8).reverse(); 
-
-            const labels = topSets.map(s => {
-                return s.name.length > 15 ? s.name.substring(0, 15) + '...' : s.name;
-            });
-            const dataScores = topSets.map(s => s.lastScore);
-
-            const ctx = document.getElementById('scoresChart').getContext('2d');
-            if(chartInstance) { chartInstance.destroy(); }
-            
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Accuracy %',
-                        data: dataScores,
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: { display: true, text: 'Score (%)' }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
-            });
         }
 
         // --- Categories CRUD ---
@@ -1063,8 +982,6 @@
             });
 
             const dateStr = set.lastReviewed ? new Date(set.lastReviewed).toLocaleDateString() : 'Never';
-            const scoreDisplay = set.lastScore !== undefined ? `${set.lastScore}%` : '-';
-            const scoreColor = set.lastScore > 80 ? 'var(--success)' : (set.lastScore > 50 ? 'var(--warning)' : 'var(--danger)');
             const playCountDisplay = set.playCount || 0;
             const isSetFrench = set.isFrench || false;
 
@@ -1097,13 +1014,6 @@
                 <div class="last-reviewed">
                     <span><i class="fa-solid fa-clock-rotate-left"></i> Last: ${dateStr}</span>
                     <span><i class="fa-solid fa-play"></i> Attempts: ${playCountDisplay}</span>
-                </div>
-                <div class="last-reviewed" style="margin-top: 0;">
-                    <span style="font-weight:bold; color: ${scoreColor}">Accuracy: ${scoreDisplay}</span>
-                </div>
-                
-                <div class="card-progress-bg">
-                    <div class="card-progress-fill" style="width: ${set.lastScore || 0}%; background-color: ${scoreColor}"></div>
                 </div>
 
                 <div class="set-card-actions" style="margin-top: 5px; justify-content: flex-start; gap: 10px;">
@@ -1450,8 +1360,6 @@
             deck = [...cardsArray].sort(() => Math.random() - 0.5);
             wrongDeck = [];
             currentCardIdx = 0;
-            originalDeckSize = deck.length;
-            firstTryCorrectCount = 0;
             
             document.getElementById('play-screen').className = 'screen active';
             document.getElementById('play-set-title').innerText = playingSetName;
@@ -1473,8 +1381,8 @@
             document.getElementById('play-current-idx').innerText = currentCardIdx + 1;
             document.getElementById('play-total').innerText = deck.length; 
             
-            // Progress represents the accuracy ceiling and correctly answered first-try cards
-            const percent = (firstTryCorrectCount / originalDeckSize) * 100;
+            // Progress represents completion through the deck
+            const percent = (currentCardIdx / deck.length) * 100;
             document.getElementById('play-progress').style.width = `${percent}%`;
         }
 
@@ -1568,13 +1476,8 @@
                 document.getElementById('play-qnote').innerText = card.aNote || 'Correct!';
                 document.getElementById('play-q').innerText = transText;
                 
-                // Track correct answers only if it hasn't been placed in wrongDeck previously
-                if (!wrongDeck.some(w => w.id === card.id)) {
-                    firstTryCorrectCount++;
-                }
-
-                // Update visual bar immediately
-                const percent = (firstTryCorrectCount / originalDeckSize) * 100;
+                // Update visual bar immediately to show visual progression bump
+                const percent = ((currentCardIdx + 1) / deck.length) * 100;
                 document.getElementById('play-progress').style.width = `${percent}%`;
 
                 mainActionBtn.innerText = "Next Card";
@@ -1649,8 +1552,6 @@
 
         // --- END SESSION ---
         function endSession() {
-            const pct = Math.max(0, Math.round((firstTryCorrectCount / originalDeckSize) * 100));
-
             // Save the stats and attempts to Firebase
             if (playingSetId) {
                 const setToUpdate = sets.find(s => s.id === playingSetId);
@@ -1658,16 +1559,11 @@
 
                 updateDoc(doc(db, "flashcard_sets", playingSetId), { 
                     lastReviewed: Date.now(),
-                    lastScore: pct,
                     playCount: newPlayCount
                 }).catch(err => console.error("Could not update stats: ", err));
             }
 
             switchScreen('end-screen');
-
-            document.getElementById('end-score').innerText = `${pct}%`;
-            document.getElementById('end-correct').innerText = firstTryCorrectCount;
-            document.getElementById('end-total').innerText = originalDeckSize;
 
             const errSect = document.getElementById('end-errors-section');
             if (wrongDeck.length > 0) {
