@@ -111,6 +111,9 @@
             cursor: grab;
             transition: all 0.2s;
             width: max-content;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .generator:active { cursor: grabbing; border-color: var(--accent); }
         
@@ -118,10 +121,11 @@
             width: 24px; 
             height: 24px;
             border-radius: 4px;
+            pointer-events: none;
         }
 
-        .generator-text-title { font-weight: 600; font-size: 0.9rem; }
-        .generator-text-value { color: var(--text-muted); font-size: 0.8rem; }
+        .generator-text-title { font-weight: 600; font-size: 0.9rem; pointer-events: none; }
+        .generator-text-value { color: var(--text-muted); font-size: 0.8rem; pointer-events: none; }
         
         /* Tiny action buttons inside draggable items */
         .generator-actions {
@@ -186,7 +190,7 @@
             box-shadow: var(--shadow-soft);
             min-height: 300px;
             border: 2px solid transparent;
-            transition: border 0.2s;
+            transition: border 0.2s, background 0.2s;
         }
         .bank.drag-over { border-color: var(--accent); background: #f4f9ff; }
         .bank-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
@@ -403,7 +407,13 @@
             });
         }
 
-        // Handle Drag Start from dynamically generated buttons
+        /* -------------------------------------------
+           DESKTOP DRAG & MOBILE TOUCH IMPLEMENTATION
+        -------------------------------------------- */
+        let touchDragData = null;
+        let touchDragClone = null;
+
+        // Desktop Drag Start
         quickAddsContainer.addEventListener('dragstart', (e) => {
             const generator = e.target.closest('.generator');
             if (generator) {
@@ -415,6 +425,73 @@
                 e.dataTransfer.setData('application/json', JSON.stringify(payload));
                 e.dataTransfer.effectAllowed = 'copy';
             }
+        });
+
+        // Mobile Touch Support
+        quickAddsContainer.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.generator-actions')) return;
+
+            const generator = e.target.closest('.generator');
+            if (!generator) return;
+
+            touchDragData = {
+                title: generator.dataset.title,
+                amount: generator.dataset.amount,
+                img: generator.dataset.img
+            };
+
+            // Create floating ghost item
+            touchDragClone = generator.cloneNode(true);
+            touchDragClone.style.position = 'fixed';
+            touchDragClone.style.pointerEvents = 'none';
+            touchDragClone.style.zIndex = '9999';
+            touchDragClone.style.opacity = '0.85';
+            touchDragClone.style.transform = 'scale(1.05)';
+            touchDragClone.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)';
+
+            const touch = e.touches[0];
+            touchDragClone.style.left = `${touch.clientX - 40}px`;
+            touchDragClone.style.top = `${touch.clientY - 40}px`;
+
+            document.body.appendChild(touchDragClone);
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!touchDragClone) return;
+            e.preventDefault(); // Stop screen scrolling while dragging
+
+            const touch = e.touches[0];
+            touchDragClone.style.left = `${touch.clientX - 40}px`;
+            touchDragClone.style.top = `${touch.clientY - 40}px`;
+
+            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropzone = targetElement ? targetElement.closest('.dropzone') : null;
+
+            document.querySelectorAll('.dropzone').forEach(zone => {
+                if (zone === dropzone) {
+                    zone.classList.add('drag-over');
+                } else {
+                    zone.classList.remove('drag-over');
+                }
+            });
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            if (!touchDragClone) return;
+
+            const touch = e.changedTouches[0];
+            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropzone = targetElement ? targetElement.closest('.dropzone') : null;
+
+            if (dropzone && touchDragData) {
+                const user = dropzone.dataset.user;
+                addBonus(user, touchDragData.title, touchDragData.amount, touchDragData.img);
+            }
+
+            touchDragClone.remove();
+            touchDragClone = null;
+            touchDragData = null;
+            document.querySelectorAll('.dropzone').forEach(zone => zone.classList.remove('drag-over'));
         });
 
         // Quick Add Modals & CRUD
@@ -466,7 +543,6 @@
                 remove(ref(db, `quickAdds/${id}`));
             }
         };
-
 
         /* -----------------------
            BANKS & DROP LOGIC
@@ -574,7 +650,7 @@
             push(itemsRef, { 
                 title, 
                 amount: parseFloat(amount), 
-                img: img || "",
+                img: img || "", 
                 timestamp: Date.now() 
             });
         }
