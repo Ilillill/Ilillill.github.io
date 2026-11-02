@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/favicons_256/fav03.ico">
     <title>Tasks</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -24,94 +23,67 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 10px; /* Reduced from 20px */
+            padding: 10px;
             display: flex;
             justify-content: center;
         }
 
         .app-container {
             width: 100%;
-            max-width: 820px;
+            max-width: 740px;
             background: var(--card-bg);
             border-radius: 16px;
-            padding: 12px 20px; /* Drastically reduced padding */
+            padding: 10px 20px 14px 20px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.06);
             position: relative;
         }
 
         .top-bar {
             display: flex;
-            justify-content: flex-end; /* Push buttons to right */
+            justify-content: flex-end;
             align-items: center;
-            margin-bottom: 10px; /* Reduced gap */
-        }
-
-        #export-header {
-            display: none;
-            text-align: center;
-            color: var(--primary);
-            margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 22px;
-            font-weight: 700;
+            margin-bottom: 6px;
         }
 
         .header-actions {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             justify-content: flex-end;
         }
 
-        /* Smaller Icon Buttons */
+        /* Smaller, Frameless Icon Buttons */
         .btn-icon {
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             padding: 0;
             border: none;
-            border-radius: 6px;
+            background: transparent;
+            box-shadow: none;
             cursor: pointer;
-            font-size: 16px; /* Size for emojis */
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+            opacity: 0.65;
+            transition: opacity 0.15s ease, transform 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #2C3E50 0%, #1A252F 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(44, 62, 80, 0.25);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 6px 16px rgba(44, 62, 80, 0.35);
-            transform: translateY(-1.5px);
-        }
-
-        .btn-outline {
-            background: white;
-            border: 2px solid var(--border);
-            color: var(--primary);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-
-        .btn-outline:hover {
-            border-color: var(--primary);
-            background: #F8FAFC;
-            transform: translateY(-1px);
+        .btn-icon:hover {
+            opacity: 1;
+            transform: scale(1.1);
         }
 
         /* Progress Bar */
         .progress-wrapper {
-            margin-bottom: 10px; /* Reduced gap */
+            margin-bottom: 10px;
         }
 
         .progress-container {
             width: 100%;
             background: #EDF2F7;
             border-radius: 12px;
-            height: 12px;
+            height: 10px;
             overflow: hidden;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
@@ -123,22 +95,14 @@
             transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .progress-text {
-            text-align: right;
-            font-size: 12px;
-            font-weight: 600;
-            color: #718096;
-            margin-top: 4px;
-        }
-
-        /* Task Layout - Tighter Spacing */
+        /* Task Layout - Tighter Spacing (No Bank / No Streak) */
         .task-row {
             display: grid;
-            grid-template-columns: 32px 1fr repeat(7, 28px) 10px 22px 24px 22px; /* Adjusted icon column to 32px */
+            grid-template-columns: 32px 1fr repeat(7, 28px);
             gap: 8px;
             align-items: center;
-            margin-bottom: 1px; /* Tighter gap between tasks */
-            padding: 2px 0; /* Drastically reduced padding */
+            margin-bottom: 1px;
+            padding: 2px 0;
             border-radius: 6px;
             transition: background 0.2s;
         }
@@ -148,12 +112,17 @@
         }
 
         .task-icon {
-            width: 28px; /* Slightly smaller icon */
+            width: 28px;
             height: 28px;
-            object-fit: cover;
+            object-fit: contain;
             border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            background-color: white;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+
+        .task-icon:hover {
+            transform: scale(1.08);
+            opacity: 0.85;
         }
 
         .task-link, .task-text {
@@ -174,7 +143,7 @@
 
         /* Checkboxes */
         .check-box {
-            width: 22px; /* Slightly smaller to fit layout better if needed, kept at 24 originally but 22 is tighter */
+            width: 22px;
             height: 22px;
             appearance: none;
             -webkit-appearance: none;
@@ -207,56 +176,22 @@
             font-weight: bold;
         }
 
-        /* Bank UI Styles */
-        .bank-btn {
-            width: 22px;
-            height: 22px;
-            border-radius: 5px;
-            border: none;
-            background: #EDF2F7;
-            color: #4A5568;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-            padding: 0;
-        }
-
-        .bank-btn:hover { background: #E2E8F0; }
-        .bank-btn.plus:hover { background: #C6F6D5; color: #22543D; }
-        .bank-btn.minus:hover { background: #FED7D7; color: #742A2A; }
-        
-        .bank-count {
-            font-size: 13px;
-            font-weight: 700;
-            text-align: center;
-            color: var(--primary);
-            min-width: 24px;
-        }
-
         /* Category Separator Line */
         .category-spacer {
             height: 1px;
             width: 100%;
             background-color: var(--border);
-            margin: 6px 0; /* Tight spacing around the line */
+            margin: 6px 0;
         }
     </style>
 </head>
 <body>
 
     <div class="app-container" id="tracker-container">
-        <h2 id="export-header"></h2>
-        
         <div class="top-bar">
             <div class="header-actions">
-                <!-- Swapped to small icon buttons with tooltips -->
-                <button onclick="exportTracker()" class="btn-primary btn-icon" id="btn-export" title="Export Week">📥</button>
-                <button onclick="resetTracker()" class="btn-outline btn-icon" id="btn-reset" title="Reset Board">🔄</button>
-                <a href="manage_tasks.html" class="btn-outline btn-icon" id="btn-manage" title="Manage Tracker">⚙️</a>
+                <button onclick="resetTracker()" class="btn-icon" id="btn-reset" title="Reset Board">🔄</button>
+                <a href="manage_tasks.html" class="btn-icon" id="btn-manage" title="Manage Tracker">⚙️</a>
             </div>
         </div>
 
@@ -264,11 +199,13 @@
             <div class="progress-container">
                 <div class="progress-bar" id="progress-fill"></div>
             </div>
-            <div class="progress-text" id="progress-text">0 / 0 Tasks Completed</div>
         </div>
 
         <div id="task-list"></div>
     </div>
+
+    <!-- Hidden file input for manual PNG upload directly to Firebase -->
+    <input type="file" id="png-uploader" accept="image/png,image/*" style="display: none;">
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -295,19 +232,36 @@
         const categoriesRef = ref(db, 'categoriesList');
         const dbRef = ref(db, 'trackerData');
         let trackerDataCache = {};
+        let activeUploadTaskId = null;
 
         const defaultCategories = [
-            { id: 'sd', name: 'Spanish Daily', boxes: 7, showBank: true },
-            { id: 'd', name: 'Daily', boxes: 7, showBank: true },
-            { id: 'w', name: 'Weekly', boxes: 1, showBank: false },
-            { id: 'm', name: 'Monthly', boxes: 1, showBank: false },
-            { id: 'legacy', name: 'Legacy Tasks', boxes: 7, showBank: false }
+            { id: 'sd', name: 'Spanish Daily', boxes: 7 },
+            { id: 'd', name: 'Daily', boxes: 7 },
+            { id: 'w', name: 'Weekly', boxes: 1 },
+            { id: 'm', name: 'Monthly', boxes: 1 },
+            { id: 'legacy', name: 'Legacy Tasks', boxes: 7 }
         ];
+
+        function normalizeList(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val.filter(item => item !== null && item !== undefined);
+            if (typeof val === 'object') return Object.values(val).filter(item => item !== null && item !== undefined);
+            return [];
+        }
+
+        function getTaskIconSrc(task) {
+            if (trackerDataCache.customIcons && trackerDataCache.customIcons[task.id]) {
+                return trackerDataCache.customIcons[task.id];
+            }
+            if (task.img) return task.img;
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-size="48">📌</text></svg>`;
+            return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+        }
 
         signInAnonymously(auth).then(() => {
             onValue(categoriesRef, (snapshot) => {
                 if (snapshot.exists()) {
-                    categories = snapshot.val().filter(c => c !== null);
+                    categories = normalizeList(snapshot.val());
                 } else {
                     categories = defaultCategories;
                     set(categoriesRef, categories);
@@ -317,7 +271,7 @@
 
             onValue(tasksRef, (snapshot) => {
                 if (snapshot.exists()) {
-                    tasks = snapshot.val().filter(t => t !== null);
+                    tasks = normalizeList(snapshot.val());
                 }
                 renderTasks();
                 syncCheckmarks();
@@ -325,6 +279,7 @@
 
             onValue(dbRef, (snapshot) => {
                 trackerDataCache = snapshot.val() || {};
+                renderTasks();
                 syncCheckmarks();
             }, (error) => {
                 console.error(error);
@@ -335,16 +290,49 @@
             console.error("Silent login failed:", error);
         });
 
+        // Handle direct PNG upload -> Base64 -> Save in Firebase Database
+        const fileInput = document.getElementById('png-uploader');
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file || activeUploadTaskId === null) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 96;
+                    canvas.height = 96;
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, 96, 96);
+                    ctx.drawImage(img, 0, 0, 96, 96);
+
+                    const base64Png = canvas.toDataURL('image/png');
+                    const taskIndex = tasks.findIndex(t => String(t.id) === String(activeUploadTaskId));
+
+                    if (taskIndex !== -1) {
+                        tasks[taskIndex].img = base64Png;
+                        set(tasksRef, tasks);
+                    }
+                    set(ref(db, `trackerData/customIcons/${activeUploadTaskId}`), base64Png);
+                    activeUploadTaskId = null;
+                    fileInput.value = '';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
         function renderTasks() {
             if (!categories.length || !tasks.length) return;
 
             const container = document.getElementById('task-list');
-            container.innerHTML = ''; 
+            container.innerHTML = '';
 
-            categories.forEach((category, catIndex) => {
-                const categoryTasks = tasks.filter(t => t.group === category.id);
+            categories.forEach((category) => {
+                const categoryTasks = tasks.filter(t => t.group === category.id && !t.retired);
                 if (categoryTasks.length === 0) return;
-                
+
                 if (container.children.length > 0) {
                     const spacer = document.createElement('div');
                     spacer.className = 'category-spacer';
@@ -356,9 +344,14 @@
                     row.className = 'task-row';
 
                     const img = document.createElement('img');
-                    img.src = task.img; 
+                    img.src = getTaskIconSrc(task);
                     img.className = 'task-icon';
-                    img.alt = task.title;
+                    img.alt = task.title || 'Task';
+                    img.title = 'Click to upload PNG icon';
+                    img.onclick = () => {
+                        activeUploadTaskId = task.id;
+                        fileInput.click();
+                    };
 
                     const titleWrap = document.createElement('div');
                     titleWrap.style.display = 'flex';
@@ -377,7 +370,7 @@
                                 titleWrap.appendChild(link);
                             } else {
                                 const plainText = document.createElement('span');
-                                plainText.className = 'task-text'; 
+                                plainText.className = 'task-text';
                                 plainText.innerText = opt.title;
                                 titleWrap.appendChild(plainText);
                             }
@@ -399,7 +392,7 @@
                         titleWrap.appendChild(link);
                     } else {
                         const plainText = document.createElement('span');
-                        plainText.className = 'task-text'; 
+                        plainText.className = 'task-text';
                         plainText.style.fontWeight = '500';
                         plainText.style.fontSize = '13px';
                         plainText.innerText = task.title;
@@ -410,8 +403,8 @@
                     row.appendChild(titleWrap);
 
                     const boxCount = category.boxes || 7;
-                    for(let i=0; i<7; i++) {
-                        if(i < boxCount) {
+                    for (let i = 0; i < 7; i++) {
+                        if (i < boxCount) {
                             const cb = document.createElement('input');
                             cb.type = 'checkbox';
                             cb.className = 'check-box track-box';
@@ -421,32 +414,6 @@
                             const empty = document.createElement('div');
                             row.appendChild(empty);
                         }
-                    }
-
-                    row.appendChild(document.createElement('div'));
-
-                    if (category.showBank) {
-                        const minusBtn = document.createElement('button');
-                        minusBtn.className = 'bank-btn minus';
-                        minusBtn.innerText = '−';
-                        minusBtn.onclick = () => window.updateBank(task.id, -1);
-                        row.appendChild(minusBtn);
-
-                        const countDisplay = document.createElement('div');
-                        countDisplay.className = 'bank-count';
-                        countDisplay.id = `bank_count_${task.id}`;
-                        countDisplay.innerText = '0';
-                        row.appendChild(countDisplay);
-
-                        const plusBtn = document.createElement('button');
-                        plusBtn.className = 'bank-btn plus';
-                        plusBtn.innerText = '+';
-                        plusBtn.onclick = () => window.updateBank(task.id, 1);
-                        row.appendChild(plusBtn);
-                    } else {
-                        row.appendChild(document.createElement('div'));
-                        row.appendChild(document.createElement('div'));
-                        row.appendChild(document.createElement('div'));
                     }
 
                     container.appendChild(row);
@@ -459,101 +426,38 @@
             const allBoxes = document.querySelectorAll('.track-box');
             let checked = 0;
             allBoxes.forEach(box => {
-                if(box.checked) checked++;
+                if (box.checked) checked++;
             });
-            const total = allBoxes.length; 
+            const total = allBoxes.length;
             const percentage = total === 0 ? 0 : (checked / total) * 100;
-            
+
             document.getElementById('progress-fill').style.width = percentage + '%';
-            document.getElementById('progress-text').innerText = `${checked} / ${total} Tasks Completed`;
         }
 
         function syncCheckmarks() {
             document.querySelectorAll('.check-box').forEach(box => {
-                box.checked = !!trackerDataCache[box.id]; 
+                box.checked = !!trackerDataCache[box.id];
             });
-
-            tasks.forEach(task => {
-                const countEl = document.getElementById(`bank_count_${task.id}`);
-                if (countEl) {
-                    countEl.innerText = trackerDataCache[`bank_${task.id}`] || 0;
-                }
-            });
-
             updateProgress();
         }
 
         document.addEventListener('change', (e) => {
-            if(e.target.classList.contains('check-box')) {
+            if (e.target.classList.contains('check-box')) {
                 set(ref(db, 'trackerData/' + e.target.id), e.target.checked);
             }
         });
 
-        window.updateBank = function(taskId, changeAmount) {
-            const countEl = document.getElementById(`bank_count_${taskId}`);
-            if (!countEl) return;
-            
-            let currentAmount = parseInt(countEl.innerText) || 0;
-            let newAmount = currentAmount + changeAmount;
-            
-            if (newAmount < 0) newAmount = 0; 
-            
-            countEl.innerText = newAmount;
-            set(ref(db, `trackerData/bank_${taskId}`), newAmount);
-        };
-
         window.resetTracker = function() {
-            if(confirm("Are you sure you want to clear the board and start a fresh week? (Your banked tasks will be saved!)")) {
+            if (confirm("Are you sure you want to clear the board and start a fresh week?")) {
                 const updates = {};
                 document.querySelectorAll('.check-box').forEach(box => {
                     box.checked = false;
-                    updates[box.id] = null; 
+                    updates[box.id] = null;
                 });
                 update(ref(db, 'trackerData'), updates);
                 updateProgress();
             }
-        }
-
-        window.exportTracker = function() {
-            const header = document.getElementById('export-header');
-            const actions = document.querySelector('.header-actions');
-            
-            const today = new Date();
-            const day = today.getDay();
-            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-            const monday = new Date(today.setDate(diff));
-            
-            const yyyy = monday.getFullYear();
-            const mm = String(monday.getMonth() + 1).padStart(2, '0');
-            const dd = String(monday.getDate()).padStart(2, '0');
-            
-            header.innerText = `Tracker - ${yyyy}.${mm}.${dd}`;
-            header.style.display = 'block';
-            actions.style.display = 'none';
-            
-            const bankButtons = document.querySelectorAll('.bank-btn');
-            bankButtons.forEach(btn => btn.style.display = 'none');
-            
-            html2canvas(document.getElementById("tracker-container"), {
-                scale: 2, 
-                backgroundColor: "#FFFFFF",
-                useCORS: true 
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Tracker_${yyyy}_${mm}_${dd}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                
-                header.style.display = 'none';
-                actions.style.display = 'flex';
-                bankButtons.forEach(btn => btn.style.display = 'flex');
-            }).catch(err => {
-                alert("Image export failed.");
-                header.style.display = 'none';
-                actions.style.display = 'flex';
-                bankButtons.forEach(btn => btn.style.display = 'flex');
-            });
-        }
+        };
     </script>
 </body>
 </html>
