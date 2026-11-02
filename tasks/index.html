@@ -18,6 +18,10 @@
             --border: #E0E6ED;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
@@ -28,12 +32,13 @@
             justify-content: center;
         }
 
+        /* Narrower window so checkboxes sit closer to descriptions */
         .app-container {
             width: 100%;
-            max-width: 740px;
+            max-width: 540px;
             background: var(--card-bg);
             border-radius: 16px;
-            padding: 10px 20px 14px 20px;
+            padding: 10px 16px 14px 16px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.06);
             position: relative;
         }
@@ -95,14 +100,14 @@
             transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Task Layout - Tighter Spacing (No Bank / No Streak) */
+        /* Task Layout - Larger icon (36px), description on left, checkboxes on opposite right side */
         .task-row {
             display: grid;
-            grid-template-columns: 32px 1fr repeat(7, 28px);
-            gap: 8px;
+            grid-template-columns: 38px minmax(0, 1fr) repeat(7, 24px);
+            gap: 6px;
             align-items: center;
-            margin-bottom: 1px;
-            padding: 2px 0;
+            margin-bottom: 2px;
+            padding: 3px 4px;
             border-radius: 6px;
             transition: background 0.2s;
         }
@@ -112,8 +117,8 @@
         }
 
         .task-icon {
-            width: 28px;
-            height: 28px;
+            width: 36px;
+            height: 36px;
             object-fit: contain;
             border-radius: 6px;
             cursor: pointer;
@@ -129,8 +134,10 @@
             color: var(--link);
             text-decoration: none;
             font-weight: 500;
-            font-size: 13px;
+            font-size: 13.5px;
+            line-height: 1.25;
             display: block;
+            word-break: break-word;
         }
 
         .task-text {
@@ -182,6 +189,43 @@
             width: 100%;
             background-color: var(--border);
             margin: 6px 0;
+        }
+
+        /* Mobile View Optimization */
+        @media (max-width: 520px) {
+            body {
+                padding: 4px;
+            }
+
+            .app-container {
+                padding: 8px 10px 12px 10px;
+                border-radius: 12px;
+            }
+
+            .task-row {
+                grid-template-columns: 32px minmax(0, 1fr) repeat(7, 20px);
+                gap: 4px;
+                padding: 3px 2px;
+            }
+
+            .task-icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .task-link, .task-text {
+                font-size: 12.5px;
+            }
+
+            .check-box {
+                width: 19px;
+                height: 19px;
+                border-radius: 4px;
+            }
+
+            .check-box:checked::after {
+                font-size: 11px;
+            }
         }
     </style>
 </head>
@@ -357,7 +401,7 @@
                     titleWrap.style.display = 'flex';
                     titleWrap.style.alignItems = 'center';
                     titleWrap.style.flexWrap = 'wrap';
-                    titleWrap.style.gap = '6px';
+                    titleWrap.style.gap = '5px';
 
                     if (task.options && task.options.length > 0) {
                         task.options.forEach((opt, index) => {
@@ -393,8 +437,6 @@
                     } else {
                         const plainText = document.createElement('span');
                         plainText.className = 'task-text';
-                        plainText.style.fontWeight = '500';
-                        plainText.style.fontSize = '13px';
                         plainText.innerText = task.title;
                         titleWrap.appendChild(plainText);
                     }
