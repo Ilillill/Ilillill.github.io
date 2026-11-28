@@ -94,7 +94,7 @@
         .file-label:hover { background: #e8e8ed; }
         .file-label.has-file { color: var(--accent); font-weight: 500; background: #e5f0ff; }
         
-        button.action-btn {
+        button.action-btn, a.action-btn {
             background: var(--accent);
             color: #fff;
             border: none;
@@ -105,9 +105,12 @@
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
         }
         
-        button.action-btn:hover { opacity: 0.85; }
+        button.action-btn:hover, a.action-btn:hover { opacity: 0.85; }
         
         .icon-btn {
             background: transparent;
@@ -403,6 +406,10 @@
             🔁 Toggle Repeatable
         </button>
 
+        <a href="list.html" class="action-btn" style="background: var(--surface); color: var(--accent); border: 1px solid var(--border);">
+            ☰ List View
+        </a>
+
         <div class="divider"></div>
 
         <button id="completed_tasks" class="action-btn drop-zone" style="background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border);">
@@ -474,7 +481,6 @@
             alert("Database connection requires authentication.");
         });
 
-        // Add Category Modal File Listener
         const addCatFile = document.getElementById('add-cat-file');
         const addCatLabel = document.getElementById('add-cat-file-label');
         addCatFile.addEventListener('change', (e) => {
@@ -487,7 +493,6 @@
             }
         });
 
-        // Edit Category Modal File Listener
         const modalCatFile = document.getElementById('modal-cat-file');
         const modalCatLabel = document.getElementById('modal-cat-file-label');
         modalCatFile.addEventListener('change', (e) => {
@@ -683,7 +688,6 @@
             });
         }
 
-        // Add Task Logic
         document.getElementById('add-task-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('new-task-input');
@@ -695,7 +699,6 @@
             catch (error) { alert("FIREBASE ERROR: " + error.message); }
         });
 
-        // Toggle Repeatable Logic
         document.getElementById('btn-toggle-repeatable').addEventListener('click', () => {
             repeatableVisible = !repeatableVisible;
             document.getElementById('repeatable-container').style.display = repeatableVisible ? 'flex' : 'none';
@@ -713,7 +716,6 @@
             setTimeout(() => modal.style.display = 'none', 200);
         }
 
-        // Add Category Modal Flow
         document.getElementById('btn-open-add-cat').addEventListener('click', () => {
             document.getElementById('add-cat-name').value = '';
             addCatFile.value = '';
@@ -755,7 +757,6 @@
             }
         });
 
-        // Completed Modal Flow
         document.getElementById('completed_tasks').addEventListener('click', () => {
             showModal('completed-modal');
         });
@@ -779,7 +780,6 @@
             }
         });
 
-        // Edit Category Modal Flow
         window.openCategoryModal = (catId, currentName, currentImage) => {
             currentEditingCatId = catId;
             const nameInput = document.getElementById('modal-cat-name');
@@ -855,7 +855,6 @@
             }
         });
 
-        // Edit Task Modal Flow
         const taskTextEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('modal-task-save-btn').click(); }};
         document.getElementById('modal-task-text').addEventListener('keydown', taskTextEnter);
         document.getElementById('modal-task-date').addEventListener('keydown', taskTextEnter);
@@ -907,7 +906,6 @@
             } catch (error) { alert("FIREBASE ERROR: " + error.message); }
         });
 
-        // Export Function
         document.getElementById('export-btn').addEventListener('click', () => {
             let exportData = "=== INTAKE BENCH ===\n";
             const intakeTasks = Object.values(currentTasks).filter(t => t.category === 'intake');
