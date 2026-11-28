@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - List View</title>
+    <style>
+        :root {
+            --bg-color: #fbfbfd; 
+            --surface: #ffffff; 
+            --input-bg: #f5f5f7; 
+            --border: #e5e5ea;
+            --text: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent: #007aff; 
+            --hover-bg: #f5f5f7;
+            --task-bg: #ffffff;
+            --delete-btn-color: #ff3b30;
+            
+            --shadow-sm: 0 2px 10px rgba(0,0,0,0.06);
+            --shadow-md: 0 6px 20px rgba(0,0,0,0.09);
+            --shadow-modal: 0 12px 40px rgba(0,0,0,0.12);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 16px; 
+            display: flex;
+            flex-direction: column; 
+            height: 100vh;
+            box-sizing: border-box;
+            gap: 16px; 
+        }
+
+        #top-toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        #add-task-form {
+            flex: 1; 
+            min-width: 180px;
+        }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 2px;
+        }
+
+        .text-input {
+            padding: 8px 12px; 
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .text-input:focus {
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .file-label {
+            display: inline-block;
+            cursor: pointer;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+        .file-label:hover { background: #e8e8ed; }
+        .file-label.has-file { color: var(--accent); font-weight: 500; background: #e5f0ff; }
+        
+        button.action-btn, a.action-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 8px 12px; 
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        button.action-btn:hover, a.action-btn:hover { opacity: 0.85; }
+
+        #board-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px 24px 8px;
+        }
+
+        #list-container {
+            max-width: 680px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        #intake-container {
+            display: none; 
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px dashed var(--border);
+        }
+
+        .category-box {
+            background: var(--surface);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column; 
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .category-box.drag-over-cat {
+            border-top: 3px solid var(--accent);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px; 
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            background: #ffffff; 
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+            cursor: grab;
+        }
+        
+        .category-header:hover {
+            background: #fafafa;
+        }
+
+        .category-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .category-image {
+            width: 44px; 
+            height: 44px;
+            object-fit: cover;
+            border-radius: 8px; 
+            background: transparent; 
+            display: block; 
+            flex-shrink: 0;
+        }
+        
+        .category-title {
+            font-weight: 600;
+            font-size: 1.2rem; 
+            color: var(--text);
+        }
+
+        .fallback-icon {
+            width: 44px; 
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            background: var(--input-bg);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .cat-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .move-btn {
+            background: var(--input-bg);
+            border: none;
+            color: var(--text-secondary);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+        .move-btn:hover {
+            background: #e5e5ea;
+            color: var(--text);
+        }
+
+        .task-list {
+            min-height: 44px; 
+            display: flex;
+            flex-direction: column; 
+            gap: 6px; 
+            padding: 12px; 
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .task-card {
+            background: var(--task-bg);
+            padding: 8px 12px; 
+            border-radius: 8px;
+            cursor: grab; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            user-select: none;
+            display: flex; 
+            align-items: center;
+            justify-content: space-between;
+            width: 100%; 
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+            transition: box-shadow 0.2s, transform 0.1s, border-color 0.15s;
+        }
+
+        .task-card:hover {
+            box-shadow: var(--shadow-sm);
+            background: #fcfcfd;
+        }
+
+        .task-card.drag-over-task {
+            border-top: 2px solid var(--accent);
+        }
+
+        .task-card.task-completed {
+            font-style: italic;
+            border-left: 3px solid var(--border) !important;
+            color: var(--text-secondary);
+            background: #fafafa;
+        }
+
+        .task-card span {
+            word-break: break-word; 
+            font-size: 0.9rem; 
+            font-weight: 400;
+        }
+
+        .task-date {
+            font-size: 0.72rem;
+            color: #a0a0a5;
+            margin-left: 8px;
+            font-style: normal;
+            flex-shrink: 0;
+        }
+
+        .task-card:active { cursor: grabbing; opacity: 0.7; }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        
+        .modal-box {
+            background: var(--surface); padding: 24px; border-radius: 12px;
+            width: 300px; box-shadow: var(--shadow-modal);
+            border: 1px solid var(--border);
+            transform: scale(0.97); transition: transform 0.2s;
+        }
+
+        #completed-modal .modal-box {
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #completed-modal-list {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--input-bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .modal-overlay.active { opacity: 1; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+
+        .modal-box h3 { margin-top: 0; margin-bottom: 16px; font-size: 1rem; color: var(--text); font-weight: 500;}
+        .modal-box input { margin-bottom: 12px; }
+        .modal-btn-group { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+        
+        .btn-cancel { 
+            background: var(--input-bg); color: var(--text); 
+            border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;
+        }
+        .btn-cancel:hover { background: #e5e5ea; }
+        .btn-delete { 
+            background: var(--delete-btn-color); color: #fff; 
+            border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;
+        }
+        .btn-delete:disabled { opacity: 0.4; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <!-- Add Category Modal -->
+    <div id="add-category-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Add New Category</h3>
+            <input type="text" id="add-cat-name" class="text-input" placeholder="Category Name" autocomplete="off" required>
+            <input type="file" id="add-cat-file" accept="image/png, image/jpeg" style="display: none;" required>
+            <label for="add-cat-file" id="add-cat-file-label" class="text-input file-label" style="width: 100%; margin-bottom: 12px;">Choose Icon...</label>
+            <div class="modal-btn-group">
+                <button class="btn-cancel" onclick="closeAddCategoryModal()">Cancel</button>
+                <button class="action-btn" id="add-cat-save-btn">Add Category</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div id="category-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Manage Category</h3>
+            <input type="text" id="modal-cat-name" class="text-input" placeholder="Category Name" autocomplete="off" required>
+            <input type="file" id="modal-cat-file" accept="image/png, image/jpeg" style="display: none;">
+            <label for="modal-cat-file" id="modal-cat-file-label" class="text-input file-label" style="width: 100%;">Upload New Icon (Optional)</label>
+            <input type="hidden" id="modal-cat-existing-image">
+
+            <div class="modal-btn-group">
+                <button class="btn-cancel" onclick="closeCategoryModal()">Cancel</button>
+                <button class="btn-delete" id="modal-delete-btn">Delete</button>
+                <button class="action-btn" id="modal-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="task-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Manage Task</h3>
+            <input type="text" id="modal-task-text" class="text-input" autocomplete="off">
+            <input type="text" id="modal-task-date" class="text-input" autocomplete="off" placeholder="Completion Date (e.g., 2026-08-13)" style="display: none;">
+            <div class="modal-btn-group">
+                <button class="btn-cancel" onclick="closeTaskModal()">Cancel</button>
+                <button class="btn-delete" id="modal-task-delete-btn">Delete</button>
+                <button class="action-btn" id="modal-task-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Tasks Window Modal -->
+    <div id="completed-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Completed Tasks</h3>
+            <div id="completed-modal-list" class="task-list"></div>
+            <div class="modal-btn-group">
+                <button class="btn-cancel" onclick="closeCompletedModal()">Close</button>
+                <button class="btn-delete" id="clear-all-completed-btn">Clear All</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="top-toolbar">
+        <form id="add-task-form">
+            <input type="text" id="new-task-input" class="text-input" placeholder="New Task" autocomplete="off" required>
+        </form>
+
+        <div class="divider"></div>
+
+        <button id="btn-open-add-cat" class="action-btn" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">
+            + Category
+        </button>
+
+        <button id="btn-toggle-repeatable" class="action-btn" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">
+            🔁 Repeatable
+        </button>
+
+        <a href="index.html" class="action-btn" style="background: var(--surface); color: var(--accent); border: 1px solid var(--border);">
+            ⊞ Board View
+        </a>
+
+        <div class="divider"></div>
+
+        <button id="completed_tasks" class="action-btn drop-zone" style="background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border);">
+            ✓ Completed
+        </button>
+    </div>
+
+    <div id="board-wrapper">
+        <div id="list-container">
+            <div id="intake-container" class="task-list drop-zone"></div>
+
+            <div class="category-box" id="repeatable-container" style="display: none;">
+                <div class="category-header" id="repeatable-header" style="cursor: pointer;"></div>
+                <div class="task-list drop-zone" id="repeatable_tasks"></div>
+            </div>
+
+            <div id="categories-list" style="display: flex; flex-direction: column; gap: 18px;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, onSnapshot, updateDoc, setDoc, doc, deleteDoc, serverTimestamp, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const app = initializeApp({
+            apiKey: "AIzaSyBxKv-xXahSO2TEtwVwXTfU1eJ1ZsaaMAc",
+            authDomain: "tasks-de4d9.firebaseapp.com",
+            databaseURL: "https://tasks-de4d9-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "tasks-de4d9",
+            storageBucket: "tasks-de4d9.firebasestorage.app", 
+            messagingSenderId: "908733856196",
+            appId: "1:908733856196:web:b8d268a692a0e079be4c91"
+        });
+        
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        const tasksRef = collection(db, "command_board_tasks");
+        const categoriesRef = collection(db, "command_board_categories"); 
+
+        let currentTasks = {};
+        let currentCategories = {};
+        let dragType = null; // 'task' | 'category'
+        let draggedId = null;
+        let currentDragSourceCategory = ''; 
+        let currentEditingCatId = null; 
+        let currentEditingTaskId = null;
+        let repeatableVisible = false;
+
+        signInAnonymously(auth).then(() => {
+            onSnapshot(categoriesRef, (snapshot) => {
+                currentCategories = {};
+                snapshot.forEach(doc => { currentCategories[doc.id] = doc.data(); });
+                renderList();
+            }, (error) => console.error("Category Error: ", error));
+
+            onSnapshot(tasksRef, (snapshot) => {
+                currentTasks = {};
+                snapshot.forEach(doc => { currentTasks[doc.id] = doc.data(); });
+                renderList();
+            }, (error) => console.error("Task Error: ", error));
+        }).catch((error) => {
+            console.error("Auth Failed:", error);
+            alert("Database connection requires authentication.");
+        });
+
+        function sortCategoriesList() {
+            return Object.entries(currentCategories)
+                .filter(([id]) => id !== 'repeatable_tasks' && id !== 'completed_tasks')
+                .sort((a, b) => {
+                    const orderA = typeof a[1].order === 'number' ? a[1].order : null;
+                    const orderB = typeof b[1].order === 'number' ? b[1].order : null;
+                    if (orderA !== null && orderB !== null && orderA !== orderB) return orderA - orderB;
+                    if (orderA !== null && orderB === null) return -1;
+                    if (orderA === null && orderB !== null) return 1;
+                    return (a[1].name || '').localeCompare(b[1].name || '');
+                });
+        }
+
+        function sortTasksList(tasksEntries) {
+            return tasksEntries.sort((a, b) => {
+                const orderA = typeof a[1].order === 'number' ? a[1].order : null;
+                const orderB = typeof b[1].order === 'number' ? b[1].order : null;
+                if (orderA !== null && orderB !== null && orderA !== orderB) return orderA - orderB;
+                if (orderA !== null && orderB === null) return -1;
+                if (orderA === null && orderB !== null) return 1;
+                return (a[1].text || '').localeCompare(b[1].text || '');
+            });
+        }
+
+        window.moveCategoryStep = async (catId, direction) => {
+            const sorted = sortCategoriesList();
+            const index = sorted.findIndex(([id]) => id === catId);
+            if (index === -1) return;
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= sorted.length) return;
+
+            const reordered = [...sorted];
+            const [moved] = reordered.splice(index, 1);
+            reordered.splice(targetIndex, 0, moved);
+
+            const batch = writeBatch(db);
+            reordered.forEach(([id], idx) => {
+                batch.update(doc(db, "command_board_categories", id), { order: idx });
+            });
+            await batch.commit();
+        };
+
+        async function reorderCategoriesByDrop(sourceCatId, targetCatId) {
+            if (!sourceCatId || !targetCatId || sourceCatId === targetCatId) return;
+            const sorted = sortCategoriesList();
+            const sourceIndex = sorted.findIndex(([id]) => id === sourceCatId);
+            const targetIndex = sorted.findIndex(([id]) => id === targetCatId);
+            if (sourceIndex === -1 || targetIndex === -1) return;
+
+            const reordered = [...sorted];
+            const [moved] = reordered.splice(sourceIndex, 1);
+            reordered.splice(targetIndex, 0, moved);
+
+            const batch = writeBatch(db);
+            reordered.forEach(([id], idx) => {
+                batch.update(doc(db, "command_board_categories", id), { order: idx });
+            });
+            await batch.commit();
+        }
+
+        async function handleTaskDrop(taskId, targetCategory, targetTaskId = null) {
+            const draggedTask = currentTasks[taskId];
+            if (!draggedTask) return;
+
+            if (currentDragSourceCategory === 'repeatable_tasks' && targetCategory !== 'repeatable_tasks') {
+                const targetTasks = sortTasksList(
+                    Object.entries(currentTasks).filter(([_, t]) => t.category === targetCategory)
+                );
+                let newOrder = targetTasks.length;
+                if (targetTaskId) {
+                    const idx = targetTasks.findIndex(([id]) => id === targetTaskId);
+                    if (idx !== -1) newOrder = idx;
+                }
+
+                let newData = {
+                    text: draggedTask.text,
+                    category: targetCategory,
+                    order: newOrder,
+                    createdAt: serverTimestamp()
+                };
+                if (targetCategory === 'completed_tasks' && !draggedTask.completedDate) {
+                    newData.completedDate = new Date().toISOString().split('T')[0];
+                }
+                await addDoc(tasksRef, newData);
+                return;
+            }
+
+            const targetTasks = sortTasksList(
+                Object.entries(currentTasks).filter(([id, t]) => t.category === targetCategory && id !== taskId)
+            );
+
+            let insertIndex = targetTasks.length;
+            if (targetTaskId && targetTaskId !== taskId) {
+                const foundIdx = targetTasks.findIndex(([id]) => id === targetTaskId);
+                if (foundIdx !== -1) insertIndex = foundIdx;
+            }
+
+            const newList = [...targetTasks];
+            newList.splice(insertIndex, 0, [taskId, draggedTask]);
+
+            const batch = writeBatch(db);
+            newList.forEach(([id, t], idx) => {
+                let updates = { order: idx };
+                if (id === taskId) {
+                    updates.category = targetCategory;
+                    if (targetCategory === 'completed_tasks' && !t.completedDate) {
+                        updates.completedDate = new Date().toISOString().split('T')[0];
+                    }
+                }
+                batch.update(doc(db, "command_board_tasks", id), updates);
+            });
+            await batch.commit();
+        }
+
+        function createTaskCard(taskId, task) {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.draggable = true;
+            card.id = taskId;
+            
+            if (task.category === 'completed_tasks') {
+                card.classList.add('task-completed');
+                const dateDisplay = task.completedDate ? `<span class="task-date">${task.completedDate}</span>` : '';
+                card.innerHTML = `<span>${task.text}</span>${dateDisplay}`;
+            } else {
+                if (task.category === 'intake') { card.style.borderLeft = '4px solid var(--text-secondary)'; }
+                else if (task.category === 'repeatable_tasks') { card.style.borderLeft = '4px solid #ff9800'; }
+                else { card.style.borderLeft = '4px solid var(--accent)'; }
+                card.innerHTML = `<span>${task.text}</span>`;
+            }
+            
+            card.addEventListener('click', () => { openTaskModal(taskId, task.text, task.completedDate, task.category); });
+
+            card.addEventListener('dragstart', (e) => {
+                e.stopPropagation();
+                dragType = 'task';
+                draggedId = taskId;
+                currentDragSourceCategory = task.category; 
+                e.dataTransfer.setData('text/plain', taskId);
+                setTimeout(() => card.style.opacity = '0.4', 0);
+            });
+
+            card.addEventListener('dragend', () => {
+                card.style.opacity = '1';
+                dragType = null;
+                draggedId = null;
+                document.querySelectorAll('.drag-over-task').forEach(el => el.classList.remove('drag-over-task'));
+            });
+
+            card.addEventListener('dragover', (e) => {
+                if (dragType !== 'task') return;
+                e.preventDefault();
+                e.stopPropagation();
+                card.classList.add('drag-over-task');
+            });
+
+            card.addEventListener('dragleave', () => {
+                card.classList.remove('drag-over-task');
+            });
+
+            card.addEventListener('drop', async (e) => {
+                if (dragType !== 'task') return;
+                e.preventDefault();
+                e.stopPropagation();
+                card.classList.remove('drag-over-task');
+                const droppedTaskId = e.dataTransfer.getData('text/plain') || draggedId;
+                await handleTaskDrop(droppedTaskId, task.category, taskId);
+            });
+
+            return card;
+        }
+
+        function renderList() {
+            const categoriesList = document.getElementById('categories-list');
+            const intakeZone = document.getElementById('intake-container');
+            const repeatZone = document.getElementById('repeatable_tasks');
+            const repeatHeader = document.getElementById('repeatable-header');
+            const completedListModal = document.getElementById('completed-modal-list');
+            
+            categoriesList.innerHTML = '';
+            intakeZone.innerHTML = '';
+            repeatZone.innerHTML = '';
+            completedListModal.innerHTML = ''; 
+
+            const intakeTasks = sortTasksList(Object.entries(currentTasks).filter(([_, t]) => t.category === 'intake'));
+            if (intakeTasks.length === 0) {
+                intakeZone.style.display = 'none';
+            } else {
+                intakeZone.style.display = 'flex';
+                intakeTasks.forEach(([id, task]) => intakeZone.appendChild(createTaskCard(id, task)));
+            }
+
+            const repeatCat = currentCategories['repeatable_tasks'] || { name: 'Repeatable Tasks', imageUrl: '' };
+            const safeRepeatImage = repeatCat.imageUrl || '';
+            const repeatName = repeatCat.name || 'Repeatable Tasks';
+            
+            const repeatIconHtml = safeRepeatImage 
+                ? `<img src="${safeRepeatImage}" alt="Repeatable Tasks" class="category-image">`
+                : `<div class="fallback-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg></div>`;
+            
+            repeatHeader.innerHTML = `<div class="category-header-left">${repeatIconHtml}<span class="category-title">${repeatName}</span></div>`;
+            repeatHeader.onclick = () => openCategoryModal('repeatable_tasks', repeatName, safeRepeatImage);
+
+            const repeatTasks = sortTasksList(Object.entries(currentTasks).filter(([_, t]) => t.category === 'repeatable_tasks'));
+            repeatTasks.forEach(([id, task]) => repeatZone.appendChild(createTaskCard(id, task)));
+
+            const completedTasks = sortTasksList(Object.entries(currentTasks).filter(([_, t]) => t.category === 'completed_tasks'));
+            completedTasks.forEach(([id, task]) => completedListModal.appendChild(createTaskCard(id, task)));
+
+            const sortedCategories = sortCategoriesList();
+
+            sortedCategories.forEach(([catId, cat], index) => {
+                const catBox = document.createElement('div');
+                catBox.className = 'category-box';
+                catBox.draggable = true;
+                catBox.dataset.catId = catId;
+                
+                const safeName = (cat.name || 'Unnamed').replace(/'/g, "\\'");
+                const safeImage = cat.imageUrl || '';
+                
+                const headerIcon = safeImage && safeImage.trim() !== "" 
+                    ? `<img src="${safeImage}" alt="${safeName}" class="category-image">` 
+                    : `<div class="fallback-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg></div>`;
+
+                catBox.innerHTML = `
+                    <div class="category-header">
+                        <div class="category-header-left" onclick="openCategoryModal('${catId}', '${safeName}', '${safeImage}')" title="Edit ${cat.name}">
+                            ${headerIcon}
+                            <span class="category-title">${cat.name || 'Unnamed'}</span>
+                        </div>
+                        <div class="cat-controls">
+                            <button class="move-btn" title="Move Up" ${index === 0 ? 'disabled style="opacity:0.3;cursor:default;"' : ''} onclick="event.stopPropagation(); moveCategoryStep('${catId}', -1)">↑</button>
+                            <button class="move-btn" title="Move Down" ${index === sortedCategories.length - 1 ? 'disabled style="opacity:0.3;cursor:default;"' : ''} onclick="event.stopPropagation(); moveCategoryStep('${catId}', 1)">↓</button>
+                        </div>
+                    </div>
+                    <div class="task-list drop-zone" id="${catId}"></div>
+                `;
+
+                const taskListEl = catBox.querySelector('.task-list');
+                const catTasks = sortTasksList(Object.entries(currentTasks).filter(([_, t]) => t.category === catId));
+                catTasks.forEach(([tId, t]) => taskListEl.appendChild(createTaskCard(tId, t)));
+
+                // Category Drag-and-Drop Reordering
+                catBox.addEventListener('dragstart', (e) => {
+                    if (dragType === 'task') return;
+                    dragType = 'category';
+                    draggedId = catId;
+                    e.dataTransfer.setData('text/plain', catId);
+                    setTimeout(() => catBox.style.opacity = '0.45', 0);
+                });
+
+                catBox.addEventListener('dragend', () => {
+                    catBox.style.opacity = '1';
+                    dragType = null;
+                    draggedId = null;
+                    document.querySelectorAll('.drag-over-cat').forEach(el => el.classList.remove('drag-over-cat'));
+                });
+
+                catBox.addEventListener('dragover', (e) => {
+                    if (dragType !== 'category' || draggedId === catId) return;
+                    e.preventDefault();
+                    catBox.classList.add('drag-over-cat');
+                });
+
+                catBox.addEventListener('dragleave', () => {
+                    catBox.classList.remove('drag-over-cat');
+                });
+
+                catBox.addEventListener('drop', async (e) => {
+                    if (dragType !== 'category') return;
+                    e.preventDefault();
+                    catBox.classList.remove('drag-over-cat');
+                    const sourceCatId = e.dataTransfer.getData('text/plain') || draggedId;
+                    await reorderCategoriesByDrop(sourceCatId, catId);
+                });
+
+                categoriesList.appendChild(catBox);
+            });
+
+            // Drop zones for tasks dropped into empty space of a category or button
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    if (dragType !== 'task') return;
+                    e.preventDefault(); 
+                    const glowColor = zone.id === 'repeatable_tasks' ? '#ffcc80' : 
+                                      zone.id === 'completed_tasks' ? '#4caf50' : 'var(--accent)';
+                    
+                    if (zone.tagName === 'BUTTON' || zone.id === 'intake-container') {
+                        zone.style.boxShadow = `0 0 0 2px ${glowColor}, var(--shadow-sm)`;
+                    } else {
+                        zone.parentElement.style.boxShadow = `0 0 0 2px ${glowColor}, var(--shadow-md)`;
+                    }
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    if (zone.tagName === 'BUTTON' || zone.id === 'intake-container') {
+                        zone.style.boxShadow = 'var(--shadow-sm)';
+                    } else {
+                        zone.parentElement.style.boxShadow = 'var(--shadow-md)';
+                    }
+                });
+                
+                zone.addEventListener('drop', async (e) => {
+                    if (dragType !== 'task') return;
+                    e.preventDefault();
+                    if (zone.tagName === 'BUTTON' || zone.id === 'intake-container') {
+                        zone.style.boxShadow = 'var(--shadow-sm)';
+                    } else {
+                        zone.parentElement.style.boxShadow = 'var(--shadow-md)';
+                    }
+                    
+                    const taskId = e.dataTransfer.getData('text/plain') || draggedId;
+                    const targetCategory = zone.id === 'intake-container' ? 'intake' : zone.id;
+                    await handleTaskDrop(taskId, targetCategory, null);
+                });
+            });
+        }
+
+        // File inputs
+        const addCatFile = document.getElementById('add-cat-file');
+        const addCatLabel = document.getElementById('add-cat-file-label');
+        addCatFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                addCatLabel.textContent = e.target.files[0].name;
+                addCatLabel.classList.add('has-file');
+            } else {
+                addCatLabel.textContent = "Choose Icon...";
+                addCatLabel.classList.remove('has-file');
+            }
+        });
+
+        const modalCatFile = document.getElementById('modal-cat-file');
+        const modalCatLabel = document.getElementById('modal-cat-file-label');
+        modalCatFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                modalCatLabel.textContent = e.target.files[0].name;
+                modalCatLabel.classList.add('has-file');
+            } else {
+                modalCatLabel.textContent = "Upload New Icon (Optional)";
+                modalCatLabel.classList.remove('has-file');
+            }
+        });
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 100;
+                        canvas.height = 100;
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, 100, 100);
+                        ctx.drawImage(img, 0, 0, 100, 100);
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+                    img.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Add Task
+        document.getElementById('add-task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('new-task-input');
+            if (input.value.trim() === '') return;
+            const taskText = input.value;
+            input.value = '';
+            input.focus();
+            try { 
+                await addDoc(tasksRef, { text: taskText, category: 'intake', createdAt: serverTimestamp() }); 
+            } catch (error) { alert("FIREBASE ERROR: " + error.message); }
+        });
+
+        // Toggle Repeatable
+        document.getElementById('btn-toggle-repeatable').addEventListener('click', () => {
+            repeatableVisible = !repeatableVisible;
+            document.getElementById('repeatable-container').style.display = repeatableVisible ? 'flex' : 'none';
+        });
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10); 
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 200);
+        }
+
+        // Add Category Modal
+        document.getElementById('btn-open-add-cat').addEventListener('click', () => {
+            document.getElementById('add-cat-name').value = '';
+            addCatFile.value = '';
+            addCatLabel.textContent = "Choose Icon...";
+            addCatLabel.classList.remove('has-file');
+            showModal('add-category-modal');
+        });
+
+        window.closeAddCategoryModal = () => hideModal('add-category-modal');
+
+        document.getElementById('add-cat-save-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('add-cat-save-btn');
+            const nameInput = document.getElementById('add-cat-name');
+            const fileInput = document.getElementById('add-cat-file');
+            
+            if (nameInput.value.trim() === '' || fileInput.files.length === 0) return;
+            
+            btn.textContent = "Processing...";
+            btn.disabled = true;
+
+            try {
+                const base64Image = await fileToBase64(fileInput.files[0]);
+                await addDoc(categoriesRef, { 
+                    name: nameInput.value.trim(), 
+                    imageUrl: base64Image,
+                    createdAt: serverTimestamp() 
+                });
+                closeAddCategoryModal();
+            } catch (error) { 
+                alert("DATABASE ERROR: " + error.message); 
+            } finally {
+                btn.textContent = "Add Category";
+                btn.disabled = false;
+            }
+        });
+
+        // Completed Modal
+        document.getElementById('completed_tasks').addEventListener('click', () => showModal('completed-modal'));
+        window.closeCompletedModal = () => hideModal('completed-modal');
+
+        document.getElementById('clear-all-completed-btn').addEventListener('click', async () => {
+            if (confirm("Are you sure you want to permanently delete all completed tasks?")) {
+                try {
+                    const q = query(tasksRef, where("category", "==", "completed_tasks"));
+                    const snapshot = await getDocs(q);
+                    const batch = writeBatch(db);
+                    snapshot.forEach((taskDoc) => { batch.delete(taskDoc.ref); });
+                    await batch.commit();
+                    closeCompletedModal();
+                } catch (error) { alert("FIREBASE ERROR: " + error.message); }
+            }
+        });
+
+        // Edit Category Modal
+        window.openCategoryModal = (catId, currentName, currentImage) => {
+            currentEditingCatId = catId;
+            const nameInput = document.getElementById('modal-cat-name');
+            
+            nameInput.value = currentName;
+            document.getElementById('modal-cat-existing-image').value = currentImage;
+            
+            modalCatFile.value = '';
+            modalCatLabel.textContent = "Upload New Icon (Optional)";
+            modalCatLabel.classList.remove('has-file');
+            
+            if (catId === 'repeatable_tasks') {
+                nameInput.disabled = true;
+                document.getElementById('modal-delete-btn').disabled = true;
+            } else {
+                nameInput.disabled = false;
+                document.getElementById('modal-delete-btn').disabled = false;
+            }
+
+            showModal('category-modal');
+        };
+
+        window.closeCategoryModal = () => {
+            hideModal('category-modal');
+            currentEditingCatId = null;
+        };
+
+        document.getElementById('modal-save-btn').addEventListener('click', async () => {
+            if (!currentEditingCatId) return;
+            const btn = document.getElementById('modal-save-btn');
+            const newName = document.getElementById('modal-cat-name').value.trim();
+            const fileInput = document.getElementById('modal-cat-file');
+            let finalImageUrl = document.getElementById('modal-cat-existing-image').value;
+            
+            btn.textContent = "Saving...";
+            btn.disabled = true;
+
+            try {
+                if (fileInput.files.length > 0) {
+                    finalImageUrl = await fileToBase64(fileInput.files[0]);
+                }
+
+                if (currentEditingCatId === 'repeatable_tasks') {
+                    await setDoc(doc(db, "command_board_categories", "repeatable_tasks"), {
+                        name: "Repeatable Tasks", imageUrl: finalImageUrl 
+                    }, { merge: true });
+                } else if (newName !== "") {
+                    await updateDoc(doc(db, "command_board_categories", currentEditingCatId), { 
+                        name: newName, imageUrl: finalImageUrl 
+                    });
+                }
+                closeCategoryModal();
+            } catch (error) { 
+                alert("FIREBASE ERROR: " + error.message); 
+            } finally {
+                btn.textContent = "Save";
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('modal-delete-btn').addEventListener('click', async () => {
+            if (!currentEditingCatId || currentEditingCatId === 'repeatable_tasks') return;
+            if (confirm("Delete this category? Tasks inside will return to the Intake bench.")) {
+                try {
+                    const q = query(tasksRef, where("category", "==", currentEditingCatId));
+                    const snapshot = await getDocs(q);
+                    const batch = writeBatch(db);
+                    snapshot.forEach((taskDoc) => { batch.update(taskDoc.ref, { category: 'intake' }); });
+                    await batch.commit();
+                    await deleteDoc(doc(db, "command_board_categories", currentEditingCatId));
+                    closeCategoryModal();
+                } catch (error) { alert("FIREBASE ERROR: " + error.message); }
+            }
+        });
+
+        // Edit Task Modal
+        const taskTextEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('modal-task-save-btn').click(); }};
+        document.getElementById('modal-task-text').addEventListener('keydown', taskTextEnter);
+        document.getElementById('modal-task-date').addEventListener('keydown', taskTextEnter);
+
+        window.openTaskModal = (taskId, text, date, category) => {
+            currentEditingTaskId = taskId;
+            document.getElementById('modal-task-text').value = text;
+            
+            const dateInput = document.getElementById('modal-task-date');
+            if (category === 'completed_tasks') {
+                dateInput.style.display = 'block';
+                dateInput.value = date || '';
+            } else {
+                dateInput.style.display = 'none';
+            }
+
+            showModal('task-modal');
+            document.getElementById('modal-task-text').focus();
+        };
+
+        window.closeTaskModal = () => {
+            hideModal('task-modal');
+            currentEditingTaskId = null;
+        };
+
+        document.getElementById('modal-task-save-btn').addEventListener('click', async () => {
+            if (!currentEditingTaskId) return;
+            const newText = document.getElementById('modal-task-text').value.trim();
+            const dateInput = document.getElementById('modal-task-date');
+            
+            let updates = { text: newText };
+            if (dateInput.style.display === 'block') {
+                updates.completedDate = dateInput.value.trim();
+            }
+
+            if (newText !== "") {
+                try {
+                    await updateDoc(doc(db, "command_board_tasks", currentEditingTaskId), updates);
+                    closeTaskModal();
+                } catch (error) { alert("FIREBASE ERROR: " + error.message); }
+            }
+        });
+
+        document.getElementById('modal-task-delete-btn').addEventListener('click', async () => {
+            if (!currentEditingTaskId) return;
+            try {
+                await deleteDoc(doc(db, "command_board_tasks", currentEditingTaskId));
+                closeTaskModal();
+            } catch (error) { alert("FIREBASE ERROR: " + error.message); }
+        });
+    </script>
+</body>
+</html>
